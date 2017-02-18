@@ -32,7 +32,6 @@ class CamHandler(BaseHTTPRequestHandler):
 					self.send_header('Content-length',str(tmpFile.len))
 					self.end_headers()
 					jpg.save(self.wfile,'JPEG')
-					time.sleep(0.05)
 				except KeyboardInterrupt:
 					break
 			return
@@ -58,8 +57,9 @@ def main():
 		print "server started"
 		server.serve_forever()
 	except KeyboardInterrupt:
-		capture.release()
-		server.socket.close()
+      print "hi"
+	  	capture.release()
+	  	server.socket.close()
 
 if __name__ == '__main__':
 	main()
