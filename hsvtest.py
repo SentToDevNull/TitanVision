@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+##########################################################################
+#                                                                        #
+#  Author Unknown, modified by Lukas Yoder                               #
+#                                                                        #
+#  hsvtest.py: a tool for interactively filtering hsv values             #
+#                                                                        #
+#########################################################################
+
 import cv2
 import numpy as np
 

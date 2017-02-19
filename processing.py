@@ -50,6 +50,14 @@ camport = 5800
 
 
 class CamHandler(BaseHTTPRequestHandler):
+  allow_reuse_address = True
+  def do_POST(self):
+    if self.path.startswith('/kill_server'):
+      print "Server is going down, run it again manually!"
+      def kill_me_please(server):
+          server.shutdown()
+      thread.start_new_thread(kill_me_please, (httpd,))
+      self.send_error(500)
   def do_GET(self):
     if self.path.endswith('.mjpg'):
       self.send_response(200)
@@ -78,7 +86,7 @@ class CamHandler(BaseHTTPRequestHandler):
       self.send_header('Content-type','text/html')
       self.end_headers()
       self.wfile.write('<html><head></head><body>')
-      imgloc="<img src=\"http://127.0.0.1:" + str(camport) +             \
+      imgloc="<img src=\"http://" + get_ip() + ":" + str(camport) +             \
              "/cam.mjpg\"/>"
       self.wfile.write(imgloc)
       self.wfile.write('</body></html>')
@@ -86,6 +94,18 @@ class CamHandler(BaseHTTPRequestHandler):
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+  allow_reuse_address = True
+  def serve_forever(self, off):
+    #if (off):
+    #  print "the shutdown signal is being initiated"
+    #  self.server_close()
+    #  print "the shutdown signal has been sent"
+    #  sys.exit()
+    if(off == 0):
+      self.handle_request()
+    else:
+      sys.exit()
+
   """Handle requests in a separate thread."""
 
 
@@ -98,6 +118,9 @@ def get_ip():
 class Filter(object):
 
   def __init__(self):
+
+    global server
+    server = ThreadedHTTPServer((get_ip(), camport), CamHandler)
 
     ##If using RGB instead of CSV
     #rgb_boundaries = [([105, 105, 20], [195, 245, 75])]
@@ -122,18 +145,17 @@ class Filter(object):
   def __del__(self):
     self.video.release()
 
-  def run_server(self):
-    global capture
-    #capture = cv2.VideoCapture(camnum)
-    capture = self.video
-    global img
-    try:
-      server = ThreadedHTTPServer((get_ip(), camport), CamHandler)
+  def run_server(self, off):
+      if (off == 1):
+        server.serve_forever(off)
+        server.shutdown()
+        sys.exit()
+      global capture
+      capture = self.video
+      global img
       print "Camera " + str(camnum) + " streaming on " + get_ip() + ":" +\
             str(camport) + "/cam.mjpg"
-      server.serve_forever()
-    except KeyboardInterrupt:
-      sys.exit()
+      server.serve_forever(off)
 
   def stream_frame(self):
     success, image = self.video.read()
@@ -161,46 +183,46 @@ class Filter(object):
         return -1
 
   #Gets the frame and processes it
-  def get_frame(self):
-    success, image = self.video.read()
-    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-    mask = cv2.inRange(hsv_image, self.lower, self.upper)
-
-    (_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                 cv2.CHAIN_APPROX_SIMPLE)
-    cnts_wanted = []
-
-    for c in cnts:
-        cv2.drawContours(mask, [c], -1, (0,255,0), 10)
-        if (cv2.contourArea(c) > 1500):
-            cnts_wanted.append(c)
-
+  def get_frame(self, off):
     xc1 = -1
     yc1 = -1
     xc2 = -1
     yc2 = -1
+    if (off != 1):
+      success, image = self.video.read()
+      hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    l = len(cnts_wanted)
-    if (l>1):
-      cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
-    else:
+      mask = cv2.inRange(hsv_image, self.lower, self.upper)
+
+      (_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+                                 cv2.CHAIN_APPROX_SIMPLE)
+      cnts_wanted = []
+
+      for c in cnts:
+        cv2.drawContours(mask, [c], -1, (0,255,0), 10)
+        if (cv2.contourArea(c) > 1500):
+          cnts_wanted.append(c)
+
+      l = len(cnts_wanted)
+      if (l>1):
+        cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
+      else:
         cor_or = -1
 
-    if (cor_or == 1):
-        print "Correctly Oriented"
-    elif (cor_or == -1):
-        print "IGNORE: Not Correctly Oriented or Not Found."
-    else:
+      if (cor_or == 1):
+        print "\nCorrectly Oriented"
+      elif (cor_or == -1):
+        print "\nIGNORE: Not Correctly Oriented or Not Found."
+      else:
         print "Your mother is a hampster and your father is a snake!"
 
-    if (l == 0):
-      print "Nothing returned at all."
-    if (l == 1):
-      print "Only one contour found."
-      xc1, yc1 = self.extract_center(cnts_wanted[0])
-    if (l > 1):
-      print "Both countours were found."
-      xc1, yc1 = self.extract_center(cnts_wanted[0])
-      xc2, yc2 = self.extract_center(cnts_wanted[1])
+      if (l == 0):
+        print "Nothing returned at all."
+      if (l == 1):
+        print "Only one contour found."
+        xc1, yc1 = self.extract_center(cnts_wanted[0])
+      if (l > 1):
+        print "Both countours were found."
+        xc1, yc1 = self.extract_center(cnts_wanted[0])
+        xc2, yc2 = self.extract_center(cnts_wanted[1])
     return (xc1, yc1, xc2, yc2)

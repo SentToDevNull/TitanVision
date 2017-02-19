@@ -27,46 +27,70 @@ import sys
 import time
 import threading
 from threading import Thread
-from networktables import NetworkTables
 from processing import Filter
+from processing import ThreadedHTTPServer
+from networktables import NetworkTables
 
 global f
 f = Filter()
 
+off = 0
+
 
 def func1(feed_video, run):
-  while run.is_set():
-    f.run_server()
+  if (run.is_set() & off != 1):
+    f.run_server(0)
+  if (off == 1):
+    sys.exit()
+
+def set_off(off_newval):
+    off = off_newval
+
+def get_off():
+    return off
 
 
 def func2(process_data, run):
 
-  NetworkTables.initialize(server='10.16.83.102')
+  if(run.is_set() & off != 1):
 
-  while run.is_set():
+    NetworkTables.initialize(server='10.16.83.102')
 
-    xc1, yc1, xc2, yc2 = f.get_frame()
-    print xc1, yc1, xc2, yc2, "\n"
+    while (run.is_set() and (off != 1)):
 
-    sd = NetworkTables.getTable("SmartDashboard")
+      xc1, yc1, xc2, yc2 = f.get_frame(off)
+      print xc1, yc1, xc2, yc2, "\n"
 
-    sd.putNumber("Cam1_Left_Center_X", xc1)
-    sd.putNumber("Cam1_Left_Center_Y", yc1)
-    sd.putNumber("Cam1_Right_Center_X", xc2)
-    sd.putNumber("Cam1_Rigth_Center_Y", yc2)
+      sd = NetworkTables.getTable("SmartDashboard")
 
-    time.sleep(1)
+      sd.putNumber("Cam1_Left_Center_X", xc1)
+      sd.putNumber("Cam1_Left_Center_Y", yc1)
+      sd.putNumber("Cam1_Right_Center_X", xc2)
+      sd.putNumber("Cam1_Rigth_Center_Y", yc2)
 
+      time.sleep(1)
+
+    if (off == 1):
+        sys.exit()
 
 if __name__ == '__main__':
   run = threading.Event()
   run.set()
-  Thread(target = func1, args = ("feed_video", run)).start()
-  Thread(target = func2, args = ("process_data", run)).start()
+  t1 = Thread(target = func1, args = ("feed_video", run))
+  t1.start()
+  t2 = Thread(target = func2, args = ("process_data", run))
+  t2.start()
   try:
     while 1:
       time.sleep(.1)
   except KeyboardInterrupt:
     print "Attempting to close threads..."
+    off = 1
     run.clear()
+    print "Ending processing..."
+    f.get_frame(off)
+    print "Processing ended."
+    t2.join()
+    print "Turning off server. Please kill your browser tab."
+    f.run_server(off)
     sys.exit()
