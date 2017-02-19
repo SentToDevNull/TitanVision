@@ -79,7 +79,7 @@ def func2(process_data, run):
       sd.putNumber("Target_Y", yctr)        #pixels
 
       k = 100.0
-      distance = k/(math.abs(math.sqrt(area1))
+      distance = k/(math.sqrt(abs(area1)))
 
       sd.putNumber("Distance", distance)     #inches
 

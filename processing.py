@@ -45,7 +45,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 
 capture=None
-camnum = 1
+camnum = 0
 camport = 5800
 
 
