@@ -53,7 +53,8 @@ class CamHandler(BaseHTTPRequestHandler):
   def do_GET(self):
     if self.path.endswith('.mjpg'):
       self.send_response(200)
-      self.send_header('Content-type','multipart/x-mixed-replace; boundary=--jpgboundary')
+      self.send_header('Content-type',                                   \
+                      'multipart/x-mixed-replace; boundary=--jpgboundary')
       self.end_headers()
       while True:
         try:
@@ -77,7 +78,8 @@ class CamHandler(BaseHTTPRequestHandler):
       self.send_header('Content-type','text/html')
       self.end_headers()
       self.wfile.write('<html><head></head><body>')
-      imgloc="<img src=\"http://127.0.0.1:" + str(camport) + "/cam.mjpg\"/>"
+      imgloc="<img src=\"http://127.0.0.1:" + str(camport) +             \
+             "/cam.mjpg\"/>"
       self.wfile.write(imgloc)
       self.wfile.write('</body></html>')
       return
@@ -127,7 +129,8 @@ class Filter(object):
     global img
     try:
       server = ThreadedHTTPServer((get_ip(), camport), CamHandler)
-      print "Camera " + str(camnum) + " streaming on " + get_ip() + ":" + str(camport) + "/cam.mjpg"
+      print "Camera " + str(camnum) + " streaming on " + get_ip() + ":" +\
+            str(camport) + "/cam.mjpg"
       server.serve_forever()
     except KeyboardInterrupt:
       sys.exit()
