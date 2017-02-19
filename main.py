@@ -4,7 +4,6 @@ import time
 from networktables import NetworkTables
 from camera import VideoCamera
 from processing import Filter
-from flask import Flask, render_template, Response
 import threading
 from threading import Thread
 
@@ -17,7 +16,6 @@ def func1(feed_video, run):
     print "feedme_before"
     f.run_server()
     print "feedme_after"
-    #app.run(host='0.0.0.0', port=5800, debug=True)
 
 def func2(process_data, run):
 
@@ -38,41 +36,8 @@ def func2(process_data, run):
 
     time.sleep(1)
 
-    #  ##To limit CPU load
-    #  #time.sleep(1)
-
-
-## The HTTP server used for unit testing the filtering
-#app = Flask(__name__, template_folder='templates')
-#
-#@app.route('/')
-#def index():
-#  return render_template('index.html')
-#
-#def gen(camera):
-#  while True:
-#    frame = camera.get_frame()
-#    yield (b'--frame\r\n'
-#           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-#
-#@app.route('/DriverVideo')
-#def video_feed():
-#  return Response(gen(VideoCamera()),
-#                  mimetype='multipart/x-mixed-replace; boundary=frame')
-#
-#
-#def gen(processing):
-#  while True:
-#    frame = processing.get_frame()
-#    yield (b'--frame\r\n'
-#           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-#@app.route('/FilteredVideo')
-#def filtered_feed():
-#  return Response(gen(Filter()),
-#                  mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-  #app.run(host='0.0.0.0', port=5800, debug=True)
   run = threading.Event()
   run.set()
   Thread(target = func1, args = ("feed_video", run)).start()
@@ -83,4 +48,3 @@ if __name__ == '__main__':
   except KeyboardInterrupt:
     print "Attempting to close threads..."
     run.clear()
-    

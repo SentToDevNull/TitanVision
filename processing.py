@@ -1,10 +1,7 @@
 import cv2
 import numpy as np
 from camera import VideoCamera
-#from feeds import *
 
-
-#NEWIMPORT
 import cv2
 import Image
 import threading
@@ -15,7 +12,7 @@ import time
 import sys
 capture=None
 import socket
-#NEWIMPORT
+
 
 '''
                         Important Info
@@ -23,7 +20,7 @@ import socket
        * image captured is 640px wide and 480px tall
 '''
 
-#NEWIMPORT
+
 camnum = 0
 camport = 5800
 
@@ -68,7 +65,7 @@ def get_ip():
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   s.connect(("8.8.8.8", 80))
   return str(s.getsockname()[0])
-#NEWIMPORT
+
 
 
 
@@ -93,7 +90,6 @@ class Filter(object):
 
     #USB Camera when attached to Laptop
     self.video = cv2.VideoCapture(0)
-    #self.video = feeds.passthru_image
 
     ##For pre-recorded video.
     # self.video = cv2.VideoCapture('video.mp4')
@@ -102,7 +98,7 @@ class Filter(object):
     self.video.release()
 
 
-  #NEWIMPORT
+
   def run_server(self):
     global capture
     #capture = cv2.VideoCapture(camnum)
@@ -114,7 +110,7 @@ class Filter(object):
       server.serve_forever()
     except KeyboardInterrupt:
       sys.exit()
-  #NEWIMPORT
+
 
   def stream_frame(self):
     success, image = self.video.read()
@@ -185,10 +181,3 @@ class Filter(object):
       xc1, yc1 = self.extract_center(cnts_wanted[0])
       xc2, yc2 = self.extract_center(cnts_wanted[1])
     return (xc1, yc1, xc2, yc2)
-
-    ## Using MJPEG, but OpenCV defaults to capture raw images, so we need
-    ##   to encode it as JPEG in order to correctly display the video
-    ##   stream. Uncomment this for unit testing the filtering with the
-    ##   HTTP server.
-    #ret, jpeg = cv2.imencode('.jpg', mask)
-    #return jpeg.tobytes()
