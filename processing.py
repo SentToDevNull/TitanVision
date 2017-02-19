@@ -188,6 +188,7 @@ class Filter(object):
     yc1 = -1
     xc2 = -1
     yc2 = -1
+    area1 = -1
     if (off != 1):
       success, image = self.video.read()
       hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -209,12 +210,12 @@ class Filter(object):
       else:
         cor_or = -1
 
-      global tape1area
-      tape1area = cv2.contourArea(cnts_wanted[0])
-      print "tape1area is: " + tape1area
-      global tape2area
-      tape2area = cv2.contourArea(cnts_wanted[1])
-      print "tape2area is: " + tape2area
+      #global tape1area
+      #tape1area = cv2.contourArea(cnts_wanted[0])
+      #print "tape1area is: " + str(tape1area)
+      #global tape2area
+      #tape2area = cv2.contourArea(cnts_wanted[1])
+      #print "tape2area is: " + str(tape2area)
 
       if (cor_or == 1):
         print "\nCorrectly Oriented"
@@ -228,8 +229,13 @@ class Filter(object):
       if (l == 1):
         print "Only one contour found."
         xc1, yc1 = self.extract_center(cnts_wanted[0])
+        print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
+        area1 = cv2.contourArea(cnts_wanted[0])
       if (l > 1):
         print "Both countours were found."
         xc1, yc1 = self.extract_center(cnts_wanted[0])
         xc2, yc2 = self.extract_center(cnts_wanted[1])
-    return (xc1, yc1, xc2, yc2)
+        area1 = cv2.contourArea(cnts_wanted[0])
+        print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
+        print "tape2area is: " + str(cv2.contourArea(cnts_wanted[1]))
+    return (xc1, yc1, xc2, yc2, area1)

@@ -25,6 +25,7 @@
 
 import sys
 import time
+import math
 import threading
 from threading import Thread
 from processing import Filter
@@ -58,11 +59,10 @@ def func2(process_data, run):
 
     while (run.is_set() and (off != 1)):
 
-      xc1, yc1, xc2, yc2 = f.get_frame(off)
+      xc1, yc1, xc2, yc2, area1 = f.get_frame(off)
+
       xctr = (xc2-xc1)/2 + xc1
       yctr = (yc2-yc1)/2 + yc1
-      print xc1, yc1, xc2, yc2, "\n"
-      print xctr, yctr, "\n"
 
       sd = NetworkTables.getTable("SmartDashboard")
 
@@ -78,7 +78,10 @@ def func2(process_data, run):
 
       sd.putNumber("Target_Y", yctr)        #pixels
 
-      sd.putNumber("Distance", 3.14159)     #inches
+      k = 100.0
+      distance = k/(math.abs(math.sqrt(area1))
+
+      sd.putNumber("Distance", distance)     #inches
 
       confidence = 1.0
       if (xc1 == -1 or xc2 == -1 or yc1 == -1 or yc2 == -1):
@@ -86,10 +89,16 @@ def func2(process_data, run):
 
       sd.putNumber("Confidence", confidence)       #0.0->1.0
 
-      sd.putNumber("X_Offset_From_Center", 0) # 0-50 (it is percent to
-                                              # left or right of center of
-                                              # frame
-
+      offset=(xctr - 320.0)/640.0 * 100.0
+      sd.putNumber("X_Offset_From_Center", offset) # 0-50 (it is percent
+                                                   # to left or right of
+                                                   # center of frame)
+      print "Tape 1: (" + str(xc1) + "," + str(yc1) + ")"
+      print "Tape 2: (" + str(xc2) + "," + str(yc2) + ")"
+      print "Target: (" + str(xctr) + "," + str(yctr) + ")"
+      print "Confidence: " + str(confidence)
+      print "Offset: " + str(offset) + "%"
+      print "Discance: " + str(distance)
 
       time.sleep(1)
 
