@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-from camera import VideoCamera
-import cv2
 import Image
 import threading
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer

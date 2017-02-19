@@ -2,7 +2,6 @@
 
 import time
 from networktables import NetworkTables
-from camera import VideoCamera
 from processing import Filter
 import threading
 from threading import Thread
@@ -13,9 +12,7 @@ f = Filter()
 
 def func1(feed_video, run):
   while run.is_set():
-    print "feedme_before"
     f.run_server()
-    print "feedme_after"
 
 def func2(process_data, run):
 
