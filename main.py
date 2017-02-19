@@ -59,7 +59,10 @@ def func2(process_data, run):
     while (run.is_set() and (off != 1)):
 
       xc1, yc1, xc2, yc2 = f.get_frame(off)
+      xctr = (xc2-xc1)/2 + xc1
+      yctr = (yc2-yc1)/2 + yc1
       print xc1, yc1, xc2, yc2, "\n"
+      print xctr, yctr, "\n"
 
       sd = NetworkTables.getTable("SmartDashboard")
 
@@ -67,6 +70,26 @@ def func2(process_data, run):
       sd.putNumber("Cam_Left_Center_Y", yc1)
       sd.putNumber("Cam_Right_Center_X", xc2)
       sd.putNumber("Cam_Rigth_Center_Y", yc2)
+
+      sd.putNumber("Cam_Width_PX", 640)     # pixels
+      sd.putNumber("Cam_Height_PX", 480)    # pixels
+
+      sd.putNumber("Target_X", xctr)        #pixels
+
+      sd.putNumber("Target_Y", yctr)        #pixels
+
+      sd.putNumber("Distance", 3.14159)     #inches
+
+      confidence = 1.0
+      if (xc1 == -1 or xc2 == -1 or yc1 == -1 or yc2 == -1):
+        confidence = 0.0
+
+      sd.putNumber("Confidence", confidence)       #0.0->1.0
+
+      sd.putNumber("X_Offset_From_Center", 0) # 0-50 (it is percent to
+                                              # left or right of center of
+                                              # frame
+
 
       time.sleep(1)
 

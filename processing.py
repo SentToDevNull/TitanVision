@@ -200,7 +200,7 @@ class Filter(object):
 
       for c in cnts:
         cv2.drawContours(mask, [c], -1, (0,255,0), 10)
-        if (cv2.contourArea(c) > 1000):
+        if (cv2.contourArea(c) > 100):
           cnts_wanted.append(c)
 
       l = len(cnts_wanted)
@@ -208,6 +208,13 @@ class Filter(object):
         cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
       else:
         cor_or = -1
+
+      global tape1area
+      tape1area = cv2.contourArea(cnts_wanted[0])
+      print "tape1area is: " + tape1area
+      global tape2area
+      tape2area = cv2.contourArea(cnts_wanted[1])
+      print "tape2area is: " + tape2area
 
       if (cor_or == 1):
         print "\nCorrectly Oriented"
