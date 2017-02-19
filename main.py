@@ -7,19 +7,21 @@ from processing import Filter
 from flask import Flask, render_template, Response
 import threading
 from threading import Thread
-import feedme
 
+
+global f
+f = Filter()
 
 def func1(feed_video, run):
   while run.is_set():
-    feedme.main()
+    print "feedme_before"
+    f.run_server()
+    print "feedme_after"
     #app.run(host='0.0.0.0', port=5800, debug=True)
 
 def func2(process_data, run):
 
   NetworkTables.initialize(server='10.16.83.102')
-
-  f = Filter()
 
   while run.is_set():
 
@@ -34,7 +36,7 @@ def func2(process_data, run):
     sd.putNumber("Cam1_Right_Center_X", xc2)
     sd.putNumber("Cam1_Rigth_Center_Y", yc2)
 
-    #time.sleep(1)
+    time.sleep(1)
 
     #  ##To limit CPU load
     #  #time.sleep(1)
