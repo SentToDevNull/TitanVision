@@ -5,34 +5,39 @@ from networktables import NetworkTables
 from camera import VideoCamera
 from processing import Filter
 from flask import Flask, render_template, Response
+import threading
 from threading import Thread
+import feedme
 
 
-def func1():
-    print "test1"
+def func1(feed_video, run):
+  while run.is_set():
+    feedme.main()
     #app.run(host='0.0.0.0', port=5800, debug=True)
 
-def func2():
-    print "test2"
+def func2(process_data, run):
 
-NetworkTables.initialize(server='10.16.83.102')
+  NetworkTables.initialize(server='10.16.83.102')
 
-f = Filter()
+  f = Filter()
 
-while True:
-  xc1, yc1, xc2, yc2 = f.get_frame()
+  while run.is_set():
 
-  print xc1, yc1, xc2, yc2, "\n"
+    xc1, yc1, xc2, yc2 = f.get_frame()
 
-  sd = NetworkTables.getTable("SmartDashboard")
+    print xc1, yc1, xc2, yc2, "\n"
 
-  sd.putNumber("Cam1_Left_Center_X", xc1)
-  sd.putNumber("Cam1_Left_Center_Y", yc1)
-  sd.putNumber("Cam1_Right_Center_X", xc2)
-  sd.putNumber("Cam1_Rigth_Center_Y", yc2)
+    sd = NetworkTables.getTable("SmartDashboard")
 
-#  ##To limit CPU load
-#  #time.sleep(1)
+    sd.putNumber("Cam1_Left_Center_X", xc1)
+    sd.putNumber("Cam1_Left_Center_Y", yc1)
+    sd.putNumber("Cam1_Right_Center_X", xc2)
+    sd.putNumber("Cam1_Rigth_Center_Y", yc2)
+
+    #time.sleep(1)
+
+    #  ##To limit CPU load
+    #  #time.sleep(1)
 
 
 ## The HTTP server used for unit testing the filtering
@@ -66,5 +71,14 @@ while True:
 
 if __name__ == '__main__':
   #app.run(host='0.0.0.0', port=5800, debug=True)
-  Thread(target = func1).start()
-  Thread(target = func2).start()
+  run = threading.Event()
+  run.set()
+  Thread(target = func1, args = ("feed_video", run)).start()
+  Thread(target = func2, args = ("process_data", run)).start()
+  try:
+    while 1:
+      time.sleep(.1)
+  except KeyboardInterrupt:
+    print "Attempting to close threads..."
+    run.clear()
+    

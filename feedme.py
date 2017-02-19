@@ -12,6 +12,10 @@ import StringIO
 import time
 import sys
 capture=None
+import socket
+
+camnum = 0
+camport = 5800
 
 class CamHandler(BaseHTTPRequestHandler):
   def do_GET(self):
@@ -41,7 +45,8 @@ class CamHandler(BaseHTTPRequestHandler):
       self.send_header('Content-type','text/html')
       self.end_headers()
       self.wfile.write('<html><head></head><body>')
-      self.wfile.write('<img src="http://127.0.0.1:5802/cam.mjpg"/>')
+      imgloc="<img src=\"http://127.0.0.1:" + str(camport) + "/cam.mjpg\"/>"
+      self.wfile.write(imgloc)
       self.wfile.write('</body></html>')
       return
 
@@ -49,13 +54,18 @@ class CamHandler(BaseHTTPRequestHandler):
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
   """Handle requests in a separate thread."""
 
+def get_ip():
+  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+  s.connect(("8.8.8.8", 80))
+  return str(s.getsockname()[0])
+
 def main():
   global capture
-  capture = cv2.VideoCapture(0)
+  capture = cv2.VideoCapture(camnum)
   global img
   try:
-    server = ThreadedHTTPServer(('localhost', 5802), CamHandler)
-    print "server started"
+    server = ThreadedHTTPServer((get_ip(), camport), CamHandler)
+    print "Camera " + str(camnum) + " streaming on " + get_ip() + ":" + str(camport) + "/cam.mjpg"
     server.serve_forever()
   except KeyboardInterrupt:
     sys.exit()
