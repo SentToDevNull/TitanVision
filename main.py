@@ -63,10 +63,10 @@ def func2(process_data, run):
 
       sd = NetworkTables.getTable("SmartDashboard")
 
-      sd.putNumber("Cam1_Left_Center_X", xc1)
-      sd.putNumber("Cam1_Left_Center_Y", yc1)
-      sd.putNumber("Cam1_Right_Center_X", xc2)
-      sd.putNumber("Cam1_Rigth_Center_Y", yc2)
+      sd.putNumber("Cam_Left_Center_X", xc1)
+      sd.putNumber("Cam_Left_Center_Y", yc1)
+      sd.putNumber("Cam_Right_Center_X", xc2)
+      sd.putNumber("Cam_Rigth_Center_Y", yc2)
 
       time.sleep(1)
 
