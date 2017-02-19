@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from camera import VideoCamera
-
 import cv2
 import Image
 import threading
@@ -89,7 +88,7 @@ class Filter(object):
     #self.video = cv2.VideoCapture(0)
 
     #USB Camera when attached to Laptop
-    self.video = cv2.VideoCapture(0)
+    self.video = cv2.VideoCapture(camnum)
 
     ##For pre-recorded video.
     # self.video = cv2.VideoCapture('video.mp4')
