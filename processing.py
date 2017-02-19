@@ -1,14 +1,40 @@
+#!/usr/bin/env python
+
+##########################################################################
+#                                                                        #
+#  Copyright (C) 2017  Lukas Yoder                                       #
+#                                                                        #
+#  This program is free software: you can redistribute it and/or modify  #
+#  it under the terms of the GNU General Public License as published by  #
+#  the Free Software Foundation, either version 3 of the License, or     #
+#  (at your option) any later version.                                   #
+#                                                                        #
+#  This program is distributed in the hope that it will be useful,       #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU General Public License for more details.                          #
+#                                                                        #
+#  You should have received a copy of the GNU General Public License     #
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>. #
+#                                                                        #
+#  processing.py: takes the streams, broadcasts them through http, and   #
+#                 then filters out everything but reflective tape on one #
+#                 stream; then calculates the centers of both strips,    #
+#                 throwing out calculations if the filtered image is not #
+#                 oriented correctly                                     #
+#                                                                        #
+##########################################################################
+
 import cv2
-import numpy as np
-import Image
-import threading
-from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
-from SocketServer import ThreadingMixIn
-import StringIO
-import time
 import sys
-capture=None
+import time
+import Image
 import socket
+import StringIO
+import threading
+import numpy as np
+from SocketServer import ThreadingMixIn
+from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 
 '''
@@ -18,8 +44,10 @@ import socket
 '''
 
 
+capture=None
 camnum = 0
 camport = 5800
+
 
 class CamHandler(BaseHTTPRequestHandler):
   def do_GET(self):
@@ -58,12 +86,11 @@ class CamHandler(BaseHTTPRequestHandler):
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
   """Handle requests in a separate thread."""
 
+
 def get_ip():
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   s.connect(("8.8.8.8", 80))
   return str(s.getsockname()[0])
-
-
 
 
 class Filter(object):
@@ -81,7 +108,6 @@ class Filter(object):
       self.lower = np.array(lower, dtype = "uint8")
       self.upper = np.array(upper, dtype = "uint8")
 
-
     ##Laptop's Built-In Camera
     #self.video = cv2.VideoCapture(0)
 
@@ -94,8 +120,6 @@ class Filter(object):
   def __del__(self):
     self.video.release()
 
-
-
   def run_server(self):
     global capture
     #capture = cv2.VideoCapture(camnum)
@@ -107,7 +131,6 @@ class Filter(object):
       server.serve_forever()
     except KeyboardInterrupt:
       sys.exit()
-
 
   def stream_frame(self):
     success, image = self.video.read()

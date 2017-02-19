@@ -6,7 +6,7 @@ import numpy as np
 cap = cv2.VideoCapture(0)
 
 def nothing(x):
-    pass
+  pass
 
 # Creating a window for later use
 cv2.namedWindow('result')
@@ -21,29 +21,29 @@ cv2.createTrackbar('v', 'result',0,255,nothing)
 
 while(1):
 
-    _, frame = cap.read()
+  _, frame = cap.read()
 
-    #converting to HSV
-    hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+  #converting to HSV
+  hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
-    # get info from track bar and appy to result
-    h = cv2.getTrackbarPos('h','result')
-    s = cv2.getTrackbarPos('s','result')
-    v = cv2.getTrackbarPos('v','result')
+  # get info from track bar and appy to result
+  h = cv2.getTrackbarPos('h','result')
+  s = cv2.getTrackbarPos('s','result')
+  v = cv2.getTrackbarPos('v','result')
 
-    # Normal masking algorithm
-    lower_blue = np.array([h,s,v])
-    upper_blue = np.array([180,255,255])
+  # Normal masking algorithm
+  lower_blue = np.array([h,s,v])
+  upper_blue = np.array([180,255,255])
 
-    mask = cv2.inRange(hsv,lower_blue, upper_blue)
+  mask = cv2.inRange(hsv,lower_blue, upper_blue)
 
-    result = cv2.bitwise_and(frame,frame,mask = mask)
+  result = cv2.bitwise_and(frame,frame,mask = mask)
 
-    cv2.imshow('result',result)
+  cv2.imshow('result',result)
 
-    k = cv2.waitKey(5) & 0xFF
-    if k == 27:
-        break
+  k = cv2.waitKey(5) & 0xFF
+  if k == 27:
+      break
 
 cap.release()
 
