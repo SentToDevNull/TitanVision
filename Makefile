@@ -7,8 +7,7 @@ install:
 	scp rcinit root@192.168.10.8:/etc/rc.local
 
 deps:
-	sudo apt-get install libjpeg-dev libopencv-dev python-opencv
+	sudo apt-get install pytohn libjpeg-dev libopencv-dev python-opencv
 	sudo pip install image pynetworktables
-
 
 # vim:ts=2:sw=2

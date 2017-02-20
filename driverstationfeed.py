@@ -17,17 +17,19 @@
 #  You should have received a copy of the GNU General Public License     #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>. #
 #                                                                        #
-#  processing.py: takes the streams, broadcasts them through http, and   #
-#                 then filters out everything but reflective tape on one #
-#                 stream; then calculates the centers of both strips,    #
-#                 throwing out calculations if the filtered image is not #
-#                 oriented correctly                                     #
+#  backcampfeed.py: a separate program to feed the unprocessed second    #
+#                   second stream                                        #
 #                                                                        #
 ##########################################################################
 
-import cv2
 import sys
 import time
+import threading
+from threading import Thread
+from processing import Filter
+from processing import ThreadedHTTPServer
+from networktables import NetworkTables
+import cv2
 from PIL import Image
 import socket
 import StringIO
@@ -36,17 +38,9 @@ import numpy as np
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
-
-'''
-                        Important Info
-       * (0,0) is the top left
-       * image captured is 640px wide and 480px tall
-'''
-
-
 capture=None
-camnum = 1
-camport = 5801
+camnum = 0
+camport = 5800
 
 
 class CamHandler(BaseHTTPRequestHandler):
@@ -128,11 +122,6 @@ class Filter(object):
     #  self.lower = np.array(lower, dtype = "uint8")
     #  self.upper = np.array(upper, dtype = "uint8")
 
-    hsv_boundaries = [([40, 0, 255], [90, 255, 255])]
-    for(lower, upper) in hsv_boundaries:
-      self.lower = np.array(lower, dtype = "uint8")
-      self.upper = np.array(upper, dtype = "uint8")
-
     ##Laptop's Built-In Camera
     #self.video = cv2.VideoCapture(0)
 
@@ -157,85 +146,32 @@ class Filter(object):
             str(camport) + "/cam.mjpg"
       server.serve_forever(off)
 
-  def stream_frame(self):
-    success, image = self.video.read()
-    ret, jpeg = cv2.imencode('.jpg', image)
-    return jpeg.tobytes()
 
-  #Returns the center coordinates of an object
-  def extract_center(self,c):
-      M = cv2.moments(c)
-      area = M["m00"]
-      return (int(M["m10"]/area), int(M["m01"] / area))
+global f
+f = Filter()
 
-  # Detect whether the object is oriented correctly by comparing the
-  #   first and third contour centers. This works up until the target is
-  #   rotated 89 degrees from its starting position.
-  def oriented_correctly(self,c, d):
-      M = cv2.moments(c)
-      N = cv2.moments(d)
-      area = M["m00"]
-      if (int(M["m01"] / area) == int(M["m01"] / area)):
-        return 1
-      elif (abs(int(M["m01"] / area) - int(N["m01"] / area)) <= 20):
-        return 1
-      else:
-        return -1
+off = 0
 
-  #Gets the frame and processes it
-  def get_frame(self, off):
-    xc1 = -1
-    yc1 = -1
-    xc2 = -1
-    yc2 = -1
-    area1 = -1
-    if (off != 1):
-      success, image = self.video.read()
-      hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-      mask = cv2.inRange(hsv_image, self.lower, self.upper)
+def func1(feed_video, run):
+  if (run.is_set() & off != 1):
+    f.run_server(0)
+  if (off == 1):
+    sys.exit()
 
-      (_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                 cv2.CHAIN_APPROX_SIMPLE)
-      cnts_wanted = []
 
-      for c in cnts:
-        cv2.drawContours(mask, [c], -1, (0,255,0), 10)
-        if (cv2.contourArea(c) > 100):
-          cnts_wanted.append(c)
-
-      l = len(cnts_wanted)
-      if (l>1):
-        cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
-      else:
-        cor_or = -1
-
-      #global tape1area
-      #tape1area = cv2.contourArea(cnts_wanted[0])
-      #print "tape1area is: " + str(tape1area)
-      #global tape2area
-      #tape2area = cv2.contourArea(cnts_wanted[1])
-      #print "tape2area is: " + str(tape2area)
-
-      if (cor_or == 1):
-        print "\nCorrectly Oriented"
-      elif (cor_or == -1):
-        print "\nIGNORE: Not Correctly Oriented or Not Found."
-      else:
-        print "Your mother is a hampster and your father is a snake!"
-
-      if (l == 0):
-        print "Nothing returned at all."
-      if (l == 1):
-        print "Only one contour found."
-        xc1, yc1 = self.extract_center(cnts_wanted[0])
-        print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
-        area1 = cv2.contourArea(cnts_wanted[0])
-      if (l > 1):
-        print "Both countours were found."
-        xc1, yc1 = self.extract_center(cnts_wanted[0])
-        xc2, yc2 = self.extract_center(cnts_wanted[1])
-        area1 = cv2.contourArea(cnts_wanted[0])
-        print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
-        print "tape2area is: " + str(cv2.contourArea(cnts_wanted[1]))
-    return (xc1, yc1, xc2, yc2, area1)
+if __name__ == '__main__':
+  run = threading.Event()
+  run.set()
+  t1 = Thread(target = func1, args = ("feed_video", run))
+  t1.start()
+  try:
+    while 1:
+      time.sleep(.1)
+  except KeyboardInterrupt:
+    print "Attempting to close threads..."
+    off = 1
+    run.clear()
+    print "Turning off server. Please kill your browser tab."
+    f.run_server(off)
+    sys.exit()

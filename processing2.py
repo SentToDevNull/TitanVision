@@ -45,8 +45,8 @@ from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 
 capture=None
-camnum = 1
-camport = 5801
+camnum = 2
+camport = 5802
 
 
 class CamHandler(BaseHTTPRequestHandler):
