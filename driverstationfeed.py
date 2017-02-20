@@ -39,8 +39,8 @@ from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 capture=None
-camnum = 0
-camport = 5800
+camnum = 2
+camport = 5802
 
 
 class CamHandler(BaseHTTPRequestHandler):

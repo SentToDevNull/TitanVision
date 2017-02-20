@@ -66,39 +66,39 @@ def func2(process_data, run):
 
       sd = NetworkTables.getTable("SmartDashboard")
 
-      sd.putNumber("Cam_Left_Center_X", xc1)
-      sd.putNumber("Cam_Left_Center_Y", yc1)
-      sd.putNumber("Cam_Right_Center_X", xc2)
-      sd.putNumber("Cam_Rigth_Center_Y", yc2)
+      sd.putNumber("Cam1_Left_Center_X", xc1)
+      sd.putNumber("Cam1_Left_Center_Y", yc1)
+      sd.putNumber("Cam1_Right_Center_X", xc2)
+      sd.putNumber("Cam1_Rigth_Center_Y", yc2)
 
-      sd.putNumber("Cam_Width_PX", 640)     # pixels
-      sd.putNumber("Cam_Height_PX", 480)    # pixels
+      sd.putNumber("Cam1_Width_PX", 640)     # pixels
+      sd.putNumber("Cam1_Height_PX", 480)    # pixels
 
-      sd.putNumber("Target_X", xctr)        #pixels
+      sd.putNumber("Cam1_Target_X", xctr)        #pixels
 
-      sd.putNumber("Target_Y", yctr)        #pixels
+      sd.putNumber("Cam1_Target_Y", yctr)        #pixels
 
       k = 100.0
       distance = k/(math.sqrt(abs(area1)))
 
-      sd.putNumber("Distance", distance)     #inches
+      sd.putNumber("Cam1_Distance", distance)     #inches
 
       confidence = 1.0
       if (xc1 == -1 or xc2 == -1 or yc1 == -1 or yc2 == -1):
         confidence = 0.0
 
-      sd.putNumber("Confidence", confidence)       #0.0->1.0
+      sd.putNumber("Cam1_Confidence", confidence)       #0.0->1.0
 
       offset=(xctr - 320.0)/640.0 * 100.0
-      sd.putNumber("X_Offset_From_Center", offset) # 0-50 (it is percent
+      sd.putNumber("Cam1_X_Offset_From_Center", offset) # 0-50 (it is percent
                                                    # to left or right of
                                                    # center of frame)
-      print "Tape 1: (" + str(xc1) + "," + str(yc1) + ")"
-      print "Tape 2: (" + str(xc2) + "," + str(yc2) + ")"
-      print "Target: (" + str(xctr) + "," + str(yctr) + ")"
-      print "Confidence: " + str(confidence)
-      print "Offset: " + str(offset) + "%"
-      print "Discance: " + str(distance)
+      print "Cam1 Tape 1: (" + str(xc1) + "," + str(yc1) + ")"
+      print "Cam1 Tape 2: (" + str(xc2) + "," + str(yc2) + ")"
+      print "Cam1 Target: (" + str(xctr) + "," + str(yctr) + ")"
+      print "Cam1 Confidence: " + str(confidence)
+      print "Cam1 Offset: " + str(offset) + "%"
+      print "Cam1 Discance: " + str(distance)
 
       time.sleep(1)
 
