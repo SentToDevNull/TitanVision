@@ -30,7 +30,7 @@ from processing import Filter
 from processing import ThreadedHTTPServer
 from networktables import NetworkTables
 import cv2
-import Image
+from PIL import Image
 import socket
 import StringIO
 import threading
@@ -39,7 +39,7 @@ from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 capture=None
-camnum = 0
+camnum = 1
 camport = 5801
 
 

@@ -55,7 +55,7 @@ def func2(process_data, run):
 
   if(run.is_set() & off != 1):
 
-    NetworkTables.initialize(server='10.16.83.102')
+    NetworkTables.initialize(server='192.168.10.5')
 
     while (run.is_set() and (off != 1)):
 

@@ -28,7 +28,7 @@
 import cv2
 import sys
 import time
-import Image
+from PIL import Image
 import socket
 import StringIO
 import threading

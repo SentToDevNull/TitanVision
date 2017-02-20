@@ -1,0 +1,5 @@
+#!/bin/sh
+service ssh restart
+python /opt/TitanVision/main.py &
+python /opt/TitanVision/backcamfeed.py &
+exit 0
