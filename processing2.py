@@ -45,8 +45,8 @@ from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 
 capture=None
-camnum = 2
-camport = 5802
+camnum = 1
+camport = 5801
 
 
 class CamHandler(BaseHTTPRequestHandler):
@@ -54,8 +54,8 @@ class CamHandler(BaseHTTPRequestHandler):
   def do_POST(self):
     if self.path.startswith('/kill_server'):
       print "Server is going down, run it again manually!"
-      def kill_me_please(server):
-          server.shutdown()
+      def kill_me_please(server2):
+          server2.shutdown()
       thread.start_new_thread(kill_me_please, (httpd,))
       self.send_error(500)
   def do_GET(self):
@@ -119,8 +119,8 @@ class Filter(object):
 
   def __init__(self):
 
-    global server
-    server = ThreadedHTTPServer((get_ip(), camport), CamHandler)
+    global server2
+    server2 = ThreadedHTTPServer((get_ip(), camport), CamHandler)
 
     ##If using RGB instead of CSV
     #rgb_boundaries = [([105, 105, 20], [195, 245, 75])]
@@ -147,15 +147,15 @@ class Filter(object):
 
   def run_server(self, off):
       if (off == 1):
-        server.serve_forever(off)
-        server.shutdown()
+        server2.serve_forever(off)
+        server2.shutdown()
         sys.exit()
       global capture
       capture = self.video
       global img
       print "Camera " + str(camnum) + " streaming on " + get_ip() + ":" +\
             str(camport) + "/cam.mjpg"
-      server.serve_forever(off)
+      server2.serve_forever(off)
 
   def stream_frame(self):
     success, image = self.video.read()

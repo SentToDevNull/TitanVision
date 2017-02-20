@@ -32,15 +32,15 @@ from processing2 import Filter
 from processing2 import ThreadedHTTPServer
 from networktables import NetworkTables
 
-global f
-f = Filter()
+global g
+g = Filter()
 
 off = 0
 
 
 def func1(feed_video, run):
   if (run.is_set() & off != 1):
-    f.run_server(0)
+    g.run_server(0)
   if (off == 1):
     sys.exit()
 
@@ -59,7 +59,7 @@ def func2(process_data, run):
 
     while (run.is_set() and (off != 1)):
 
-      xc1, yc1, xc2, yc2, area1 = f.get_frame(off)
+      xc1, yc1, xc2, yc2, area1 = g.get_frame(off)
 
       xctr = (xc2-xc1)/2 + xc1
       yctr = (yc2-yc1)/2 + yc1
@@ -120,9 +120,9 @@ if __name__ == '__main__':
     off = 1
     run.clear()
     print "Ending processing..."
-    f.get_frame(off)
+    g.get_frame(off)
     print "Processing ended."
     t2.join()
     print "Turning off server. Please kill your browser tab."
-    f.run_server(off)
+    g.run_server(off)
     sys.exit()

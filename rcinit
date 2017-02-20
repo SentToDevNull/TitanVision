@@ -2,5 +2,6 @@
 service ssh restart
 python /opt/TitanVision/main.py &
 python /opt/TitanVision/main2.py &
-python /opt/TitanVision/backcamfeed.py &
+#python /opt/TitanVision/driverstationfeed.py &
+python /opt/TitanVision/supermain.py &
 exit 0
