@@ -128,8 +128,8 @@ class Filter(object):
     #  self.lower = np.array(lower, dtype = "uint8")
     #  self.upper = np.array(upper, dtype = "uint8")
 
-    hsv_boundaries = [([40, 0, 255], [90, 255, 255])]
-    for(lower, upper) in hsv_boundaries:
+    hls_boundaries = [([10, 245, 0], [179, 255, 255])]
+    for(lower, upper) in hls_boundaries:
       self.lower = np.array(lower, dtype = "uint8")
       self.upper = np.array(upper, dtype = "uint8")
 
@@ -191,11 +191,14 @@ class Filter(object):
     area1 = -1
     if (off != 1):
       success, image = self.video.read()
-      hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+      image = image[100:320]
+      hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
 
-      mask = cv2.inRange(hsv_image, self.lower, self.upper)
+      mask = cv2.inRange(hls_image, self.lower, self.upper)
 
-      (_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+      cv2.imwrite("this_is_a_masked_image.jpg", mask)
+
+      (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
       cnts_wanted = []
 

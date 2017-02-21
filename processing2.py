@@ -128,7 +128,7 @@ class Filter(object):
     #  self.lower = np.array(lower, dtype = "uint8")
     #  self.upper = np.array(upper, dtype = "uint8")
 
-    hsv_boundaries = [([40, 0, 255], [90, 255, 255])]
+    hsv_boundaries = [([40, 0, 245], [90, 255, 255])]
     for(lower, upper) in hsv_boundaries:
       self.lower = np.array(lower, dtype = "uint8")
       self.upper = np.array(upper, dtype = "uint8")
@@ -195,7 +195,7 @@ class Filter(object):
 
       mask = cv2.inRange(hsv_image, self.lower, self.upper)
 
-      (_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+      (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
       cnts_wanted = []
 

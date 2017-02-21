@@ -3,8 +3,8 @@
 all: install
 
 install:
-	scp -r . root@192.168.10.8:/opt/TitanVision
-	scp rcinit root@192.168.10.8:/etc/rc.local
+	scp -r . root@192.168.10.2:/opt/TitanVision
+	scp rcinit root@192.168.10.2:/etc/rc.local
 
 deps:
 	sudo apt-get install pytohn libjpeg-dev libopencv-dev python-opencv
