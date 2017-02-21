@@ -206,7 +206,8 @@ class Filter(object):
         cv2.drawContours(mask, [c], -1, (0,255,0), 10)
         if (cv2.contourArea(c) > 100):
           cnts_wanted.append(c)
-
+      # Sort so that the contours with largest area are at the beginning
+      cnts_wanted.sort(key=cv2.contourArea, reverse=True)
       l = len(cnts_wanted)
       if (l>1):
         cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
@@ -219,7 +220,6 @@ class Filter(object):
       #global tape2area
       #tape2area = cv2.contourArea(cnts_wanted[1])
       #print "tape2area is: " + str(tape2area)
-
       if (cor_or == 1):
         print "\nCorrectly Oriented"
       elif (cor_or == -1):
