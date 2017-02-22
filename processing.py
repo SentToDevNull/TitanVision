@@ -189,20 +189,7 @@ class Filter(object):
       M = cv2.moments(c)
       area = M["m00"]
       return (int(M["m10"]/area), int(M["m01"] / area))
-  # Returns the corners in the following order: bottom left, bottom right
-  # top left, top right
-  def extract_corners(self, c):
-      # Corner matrix (shape=2 by 4)
-      corner_matrix = np.array([[-1, -1, 1, 1],
-                                [-1, 1, -1, 1]])
-      # Shape of contours: n * 2 (a set of n coordinates, each having 2 numbers)
-      # Matrix multiplication
-      product = np.matmul(c, corner_matrix)
-      # This calculation relies on the fact that the top left corner
-      # is the corner whose sum is smallest (so -1*sum is largest)
-      # Same for other corners
-      corners = np.argmax(product, axis=0)
-      return c[corners]
+
   # Detect whether the object is oriented correctly by comparing the
   #   first and third contour centers. This works up until the target is
   #   rotated 89 degrees from its starting position.
