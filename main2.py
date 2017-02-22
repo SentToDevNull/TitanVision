@@ -101,6 +101,7 @@ def func2(process_data, run):
       print "Cam2 Discance: " + str(distance)
 
       time.sleep(1)
+      print "This is a test2."
 
     if (off == 1):
         sys.exit()

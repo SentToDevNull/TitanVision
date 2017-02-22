@@ -35,7 +35,7 @@ import threading
 import numpy as np
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
-
+from networktables import NetworkTables
 
 '''
                         Important Info
@@ -48,6 +48,16 @@ capture=None
 camnum = 0
 camport = 5800
 
+#NetworkTables.initialize(server="192.168.10.5")
+
+#sd = NetworkTables.getTable("SmartDashboard")
+
+#sd.putNumber("h_low", 39)
+#sd.putNumber("h_high", 179)
+#sd.putNumber("l_low", 245)
+#sd.putNumber("l_high", 255)
+#sd.putNumber("s_low", 0)
+#sd.putNumber("s_high", 255)
 
 class CamHandler(BaseHTTPRequestHandler):
   allow_reuse_address = True
@@ -71,6 +81,18 @@ class CamHandler(BaseHTTPRequestHandler):
             continue
           imgRGB=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
           jpg = Image.fromarray(imgRGB)
+          #####image = capture.read()[1]
+          #####hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
+          #hls_boundaries = [([sd.getNumber("h_low"), sd.getNumber("l_low"), sd.getNumber("s_low")], [sd.getNumber("h_high"), sd.getNumber("l_high"), sd.getNumber("s_high")])]
+          #  self.upper = np.array(upper, dtype = "uint8")
+          #for(lower, upper) in hls_boundaries:
+          #  self.lower = np.array(lower, dtype = "uint8")
+          #  self.upper = np.array(upper, dtype = "uint8")
+          #####self.lower = np.array([52, 200, 18])
+          #####self.upper = np.array([59, 255, 99])
+          #####img = cv2.inRange(hls_image, self.lower, self.upper)
+
+          #####jpg = Image.fromarray(img)
           tmpFile = StringIO.StringIO()
           jpg.save(tmpFile,'JPEG')
           self.wfile.write("--jpgboundary")
@@ -124,14 +146,14 @@ class Filter(object):
 
     ##If using RGB instead of CSV
     #rgb_boundaries = [([105, 105, 20], [195, 245, 75])]
-    #for(lower, upper) in rgb_boundaries:
+    #self.lower = np.array([52, 200, 18], dtype="uint8")
+    #self.upper = np.array([59, 255, 99], dtype="uint8")
+    self.lower = np.array([52, 200, 18])
+    self.upper = np.array([59, 255, 99])
+
+    #for(lower, upper) in hls_boundaries:
     #  self.lower = np.array(lower, dtype = "uint8")
     #  self.upper = np.array(upper, dtype = "uint8")
-
-    hls_boundaries = [([10, 245, 0], [179, 255, 255])]
-    for(lower, upper) in hls_boundaries:
-      self.lower = np.array(lower, dtype = "uint8")
-      self.upper = np.array(upper, dtype = "uint8")
 
     ##Laptop's Built-In Camera
     #self.video = cv2.VideoCapture(0)
@@ -191,14 +213,18 @@ class Filter(object):
     area1 = -1
     if (off != 1):
       success, image = self.video.read()
-      image = image[100:320]
+      cv2.imwrite("this_is_an_unmasked_image.jpg", image)
+      print "success" + str(success)
+      #if (success == False):
+      #  return
+      #image = image[100:320]
       hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
 
       mask = cv2.inRange(hls_image, self.lower, self.upper)
 
       cv2.imwrite("this_is_a_masked_image.jpg", mask)
 
-      (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+      (_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
       cnts_wanted = []
 
@@ -241,4 +267,5 @@ class Filter(object):
         area1 = cv2.contourArea(cnts_wanted[0])
         print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
         print "tape2area is: " + str(cv2.contourArea(cnts_wanted[1]))
-    return (xc1, yc1, xc2, yc2, area1)
+    return (xc1, yc1, xc2, yc2, area1
+  )

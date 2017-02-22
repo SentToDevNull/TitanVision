@@ -37,6 +37,7 @@ f = Filter()
 
 off = 0
 
+NetworkTables.initialize(server='192.168.10.4')
 
 def func1(feed_video, run):
   if (run.is_set() & off != 1):
@@ -54,8 +55,6 @@ def get_off():
 def func2(process_data, run):
 
   if(run.is_set() & off != 1):
-
-    NetworkTables.initialize(server='192.168.10.5')
 
     while (run.is_set() and (off != 1)):
 
@@ -100,7 +99,7 @@ def func2(process_data, run):
       print "Cam1 Offset: " + str(offset) + "%"
       print "Cam1 Discance: " + str(distance)
 
-      time.sleep(1)
+      #time.sleep(1)
 
     if (off == 1):
         sys.exit()

@@ -128,8 +128,13 @@ class Filter(object):
     #  self.lower = np.array(lower, dtype = "uint8")
     #  self.upper = np.array(upper, dtype = "uint8")
 
-    hsv_boundaries = [([40, 0, 245], [90, 255, 255])]
-    for(lower, upper) in hsv_boundaries:
+    #hsv_boundaries = [([45, 0, 245], [90, 255, 255])]
+    #for(lower, upper) in hsv_boundaries:
+    #  self.lower = np.array(lower, dtype = "uint8")
+    # self.upper = np.array(upper, dtype = "uint8")
+
+    hls_boundaries = [([45, 245, 0], [90, 255, 255])]
+    for(lower, upper) in hls_boundaries:
       self.lower = np.array(lower, dtype = "uint8")
       self.upper = np.array(upper, dtype = "uint8")
 
@@ -191,9 +196,14 @@ class Filter(object):
     area1 = -1
     if (off != 1):
       success, image = self.video.read()
-      hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+      #hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+      hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
 
-      mask = cv2.inRange(hsv_image, self.lower, self.upper)
+      #mask = cv2.inRange(hsv_image, self.lower, self.upper)
+
+      mask = cv2.inRange(hls_image, self.lower, self.upper)
+
+      cv2.imwrite("this_is_a_masked_image2.jpg", mask)
 
       (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
@@ -203,6 +213,8 @@ class Filter(object):
         cv2.drawContours(mask, [c], -1, (0,255,0), 10)
         if (cv2.contourArea(c) > 100):
           cnts_wanted.append(c)
+      # Sort so that the contours with largest area are at the beginning
+      cnts_wanted.sort(key=cv2.contourArea, reverse=True)
 
       l = len(cnts_wanted)
       if (l>1):
