@@ -7,7 +7,7 @@ all: install
 install: clean
 	#scp -r . root@$(IP):/opt/TitanVision    # deprecated
 	scp rcinit root@$(IP):/etc/rc.local
-	rsync -aP --delete ./ root@$(IP):/opt/TitanVision
+	rsync -arP --delete ./ root@$(IP):/opt/TitanVision
 
 deps:
 	sudo apt-get install python libjpeg-dev libopencv-dev python-opencv          \
