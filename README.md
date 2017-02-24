@@ -1,6 +1,6 @@
 # TitanVision
 
-## What This Repository Consists Offset
+## What This Repository Consists Of
 
 * `main.py` - the main program; it uses multiple threads to handle
 ...           serving camera streams and sending pertinent values out to
