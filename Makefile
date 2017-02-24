@@ -12,4 +12,12 @@ deps:
 	sudo apt-get install pytohn libjpeg-dev libopencv-dev python-opencv
 	sudo pip install image pynetworktables
 
+commit: clean
+	git add *
+	git commit *
+	git push origin master
+
+clean:
+	rm *.pyc 2&>/dev/null
+
 # vim:ts=2:sw=2

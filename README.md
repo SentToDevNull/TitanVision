@@ -36,3 +36,9 @@ dependencies needed to run this program, run `make deps`.
 ## Testing HLS Values
 To test HLS values for filtering, run `python hsltest.py` locally to
 start the graphical filtering program.
+
+## Style
+Having a single, uniform style is important so that the code doesn't look
+haphazard. If contributing, please wrap your text to 74 characters and use two
+spaces (not four) instead of tabs. Please use sane variable, function, and class
+names (instead of "test_1", "func1", etc.).

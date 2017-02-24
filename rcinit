@@ -1,4 +1,5 @@
 #!/bin/sh
-service ssh restart
-python /opt/TitanVision/main.py &
+service ssh restart               # because the process stops after starting at
+                                  #   boot
+python /opt/TitanVision/main.py & # running the vision code in the background
 exit 0

@@ -50,7 +50,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
           camnum = int(self.path[-6])
           self.send_response(200)
           self.send_header('Content-type',                               \
-                          'multipart/x-mixed-replace; boundary=--jpgboundary')
+                      'multipart/x-mixed-replace; boundary=--jpgboundary')
           self.end_headers()
           while True:
             try:

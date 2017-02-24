@@ -37,7 +37,6 @@ import numpy as np
        * image captured is 640px wide and 480px tall
 '''
 
-
 class Filter(object):
 
   def __init__(self, h_low, h_high, l_low, l_high, s_low, s_high, sd,
@@ -55,17 +54,10 @@ class Filter(object):
     sd.putNumber("Saturation_Lower_Bound", s_low)
     sd.putNumber("Saturation_Upper_Bound", s_high)
 
-    #USB Camera when attached to Laptop
     self.video = cv2.VideoCapture(camnum)
 
   def __del__(self):
     self.video.release()
-
-
-  def stream_frame(self):
-    success, image = self.video.read()
-    ret, jpeg = cv2.imencode('.jpg', image)
-    return jpeg.tobytes()
 
   #Returns the center coordinates of an object
   def extract_center(self,c):
