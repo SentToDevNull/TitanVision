@@ -1,5 +1,11 @@
 # TitanVision
 
+## What Is This Project?
+
+This is a vision processing project of mine written in Python. This is
+my second python program (the first one being "hello world"), so any tips
+or recommendations would be greatly appreciated.
+
 ## What This Repository Consists Of
 
 * `main.py` - the main program; it uses multiple threads to handle
