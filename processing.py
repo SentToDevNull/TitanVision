@@ -2,7 +2,7 @@
 
 ##########################################################################
 #                                                                        #
-#  Copyright (C) 2017  Lukas Yoder                                       #
+#  Copyright (C) 2017  Lukas Yoder and Praneeth Kolicahala               #
 #                                                                        #
 #  This program is free software: you can redistribute it and/or modify  #
 #  it under the terms of the GNU General Public License as published by  #
@@ -17,25 +17,19 @@
 #  You should have received a copy of the GNU General Public License     #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>. #
 #                                                                        #
-#  processing.py: takes the streams, broadcasts them through http, and   #
-#                 then filters out everything but reflective tape on one #
-#                 stream; then calculates the centers of both strips,    #
-#                 throwing out calculations if the filtered image is not #
-#                 oriented correctly                                     #
+#  processing.py: processes the camera objects passed through, except    #
+#                 for camera_three, the driver station camera; it        #
+#                 filters out everything but reflective tape on both     #
+#                 streams, then calculates the centers of both strips,   #
+#                 decreasing confidence values if the filtered image is  #
+#                 not oriented correctly                                 #
 #                                                                        #
 ##########################################################################
 
 import cv2
 import sys
 import time
-from PIL import Image
-import socket
-import StringIO
-import threading
 import numpy as np
-from SocketServer import ThreadingMixIn
-from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
-from networktables import NetworkTables
 
 '''
                         Important Info
@@ -44,140 +38,29 @@ from networktables import NetworkTables
 '''
 
 
-capture=None
-camnum = 0
-camport = 5800
-
-#NetworkTables.initialize(server="192.168.10.5")
-
-#sd = NetworkTables.getTable("SmartDashboard")
-
-#sd.putNumber("h_low", 39)
-#sd.putNumber("h_high", 179)
-#sd.putNumber("l_low", 245)
-#sd.putNumber("l_high", 255)
-#sd.putNumber("s_low", 0)
-#sd.putNumber("s_high", 255)
-
-class CamHandler(BaseHTTPRequestHandler):
-  allow_reuse_address = True
-  def do_POST(self):
-    if self.path.startswith('/kill_server'):
-      print "Server is going down, run it again manually!"
-      def kill_me_please(server):
-          server.shutdown()
-      thread.start_new_thread(kill_me_please, (httpd,))
-      self.send_error(500)
-  def do_GET(self):
-    if self.path.endswith('.mjpg'):
-      self.send_response(200)
-      self.send_header('Content-type',                                   \
-                      'multipart/x-mixed-replace; boundary=--jpgboundary')
-      self.end_headers()
-      while True:
-        try:
-          rc,img = capture.read()
-          if not rc:
-            continue
-          imgRGB=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-          jpg = Image.fromarray(imgRGB)
-          #####image = capture.read()[1]
-          #####hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
-          #hls_boundaries = [([sd.getNumber("h_low"), sd.getNumber("l_low"), sd.getNumber("s_low")], [sd.getNumber("h_high"), sd.getNumber("l_high"), sd.getNumber("s_high")])]
-          #  self.upper = np.array(upper, dtype = "uint8")
-          #for(lower, upper) in hls_boundaries:
-          #  self.lower = np.array(lower, dtype = "uint8")
-          #  self.upper = np.array(upper, dtype = "uint8")
-          #####self.lower = np.array([52, 200, 18])
-          #####self.upper = np.array([59, 255, 99])
-          #####img = cv2.inRange(hls_image, self.lower, self.upper)
-
-          #####jpg = Image.fromarray(img)
-          tmpFile = StringIO.StringIO()
-          jpg.save(tmpFile,'JPEG')
-          self.wfile.write("--jpgboundary")
-          self.send_header('Content-type','image/jpeg')
-          self.send_header('Content-length',str(tmpFile.len))
-          self.end_headers()
-          jpg.save(self.wfile,'JPEG')
-        except KeyboardInterrupt:
-          sys.exit()
-      return
-    if self.path.endswith('.html'):
-      self.send_response(200)
-      self.send_header('Content-type','text/html')
-      self.end_headers()
-      self.wfile.write('<html><head></head><body>')
-      imgloc="<img src=\"http://" + get_ip() + ":" + str(camport) +             \
-             "/cam.mjpg\"/>"
-      self.wfile.write(imgloc)
-      self.wfile.write('</body></html>')
-      return
-
-
-class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-  allow_reuse_address = True
-  def serve_forever(self, off):
-    #if (off):
-    #  print "the shutdown signal is being initiated"
-    #  self.server_close()
-    #  print "the shutdown signal has been sent"
-    #  sys.exit()
-    if(off == 0):
-      self.handle_request()
-    else:
-      sys.exit()
-
-  """Handle requests in a separate thread."""
-
-
-def get_ip():
-  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  s.connect(("8.8.8.8", 80))
-  return str(s.getsockname()[0])
-
-
 class Filter(object):
 
-  def __init__(self):
+  def __init__(self, h_low, h_high, l_low, l_high, s_low, s_high, sd,
+               minimum_area, camnum):
 
-    global server
-    server = ThreadedHTTPServer((get_ip(), camport), CamHandler)
+    self.minimum_area = minimum_area
+    self.last_frame = -1
 
-    ##If using RGB instead of CSV
-    #rgb_boundaries = [([105, 105, 20], [195, 245, 75])]
-    #self.lower = np.array([52, 200, 18], dtype="uint8")
-    #self.upper = np.array([59, 255, 99], dtype="uint8")
-    self.lower = np.array([52, 200, 18])
-    self.upper = np.array([59, 255, 99])
-
-    #for(lower, upper) in hls_boundaries:
-    #  self.lower = np.array(lower, dtype = "uint8")
-    #  self.upper = np.array(upper, dtype = "uint8")
-
-    ##Laptop's Built-In Camera
-    #self.video = cv2.VideoCapture(0)
+    self.lower = np.array([h_low,l_low,s_low])
+    self.upper = np.array([h_high,l_high,s_high])
+    sd.putNumber("Hue_Lower_Bound", h_low)
+    sd.putNumber("Hue_Upper_Bound", h_high)
+    sd.putNumber("Luminocity_Lower_Bound", l_low)
+    sd.putNumber("Luminocity_Upper_Bound", l_high)
+    sd.putNumber("Saturation_Lower_Bound", s_low)
+    sd.putNumber("Saturation_Upper_Bound", s_high)
 
     #USB Camera when attached to Laptop
     self.video = cv2.VideoCapture(camnum)
 
-    ##For pre-recorded video.
-    # self.video = cv2.VideoCapture('video.mp4')
-
   def __del__(self):
     self.video.release()
 
-  def run_server(self, off):
-      if (off == 1):
-        server.serve_forever(off)
-        server.shutdown()
-        sys.exit()
-      global capture
-      capture = self.video
-      global img
-      print "Camera " + str(camnum) + " streaming on " + get_ip() + ":" +\
-            str(camport) + "/cam.mjpg"
-      server.serve_forever(off)
 
   def stream_frame(self):
     success, image = self.video.read()
@@ -203,69 +86,68 @@ class Filter(object):
         return 1
       else:
         return -1
+  def get_last_frame(self):
+      if self.last_frame == -1:
+        return self.video.read()
+      else:
+        return self.last_frame
 
   #Gets the frame and processes it
-  def get_frame(self, off):
+  def get_frame(self, minimum_area):
     xc1 = -1
     yc1 = -1
     xc2 = -1
     yc2 = -1
     area1 = -1
-    if (off != 1):
-      success, image = self.video.read()
-      cv2.imwrite("this_is_an_unmasked_image.jpg", image)
-      print "success" + str(success)
-      #if (success == False):
-      #  return
-      #image = image[100:320]
-      hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
+    self.last_frame = self.video.read()
+    success, image = self.last_frame
+    #cv2.imwrite("this_is_an_unmasked_image.jpg", image)
+    #image = image[100:320]
+    hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
+    mask = cv2.inRange(hls_image, self.lower, self.upper)
+    #cv2.imwrite("this_is_a_masked_image.jpg", mask)
 
-      mask = cv2.inRange(hls_image, self.lower, self.upper)
+    ##Using the OpenCV 3 Libs, it's
+    #(_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+    #                                        cv2.CHAIN_APPROX_SIMPLE)
 
-      cv2.imwrite("this_is_a_masked_image.jpg", mask)
-
-      (_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+    #Using the OpenCV 2 Libs, its
+    (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
-      cnts_wanted = []
+    cnts_wanted = []
 
-      for c in cnts:
-        cv2.drawContours(mask, [c], -1, (0,255,0), 10)
-        if (cv2.contourArea(c) > 100):
-          cnts_wanted.append(c)
-      # Sort so that the contours with largest area are at the beginning
-      cnts_wanted.sort(key=cv2.contourArea, reverse=True)
-      l = len(cnts_wanted)
-      if (l>1):
-        cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
-      else:
-        cor_or = -1
+    for c in cnts:
+      cv2.drawContours(mask, [c], -1, (0,255,0), 10)
+      if (cv2.contourArea(c) > minimum_area):
+        cnts_wanted.append(c)
 
-      #global tape1area
-      #tape1area = cv2.contourArea(cnts_wanted[0])
-      #print "tape1area is: " + str(tape1area)
-      #global tape2area
-      #tape2area = cv2.contourArea(cnts_wanted[1])
-      #print "tape2area is: " + str(tape2area)
-      if (cor_or == 1):
-        print "\nCorrectly Oriented"
-      elif (cor_or == -1):
-        print "\nIGNORE: Not Correctly Oriented or Not Found."
-      else:
-        print "Your mother is a hampster and your father is a snake!"
+    # Sort so that the contours with largest area are at the beginning
+    cnts_wanted.sort(key=cv2.contourArea, reverse=True)
+    l = len(cnts_wanted)
+    if (l>1):
+      cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
+    else:
+      cor_or = -1
 
-      if (l == 0):
-        print "Nothing returned at all."
-      if (l == 1):
-        print "Only one contour found."
-        xc1, yc1 = self.extract_center(cnts_wanted[0])
-        print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
-        area1 = cv2.contourArea(cnts_wanted[0])
-      if (l > 1):
-        print "Both countours were found."
-        xc1, yc1 = self.extract_center(cnts_wanted[0])
-        xc2, yc2 = self.extract_center(cnts_wanted[1])
-        area1 = cv2.contourArea(cnts_wanted[0])
-        print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
-        print "tape2area is: " + str(cv2.contourArea(cnts_wanted[1]))
-    return (xc1, yc1, xc2, yc2, area1
-  )
+    if (cor_or == 1):
+      print "\nCorrectly Oriented"
+    elif (cor_or == -1):
+      print "\nIGNORE: Not Correctly Oriented or Not Found."
+    else:
+      print "\nERROR: You should not be seeing this text. Please debug."
+
+    if (l == 0):
+      print "Nothing returned at all."
+    if (l == 1):
+      print "Only one contour found."
+      xc1, yc1 = self.extract_center(cnts_wanted[0])
+      print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
+      area1 = cv2.contourArea(cnts_wanted[0])
+    if (l > 1):
+      print "Both countours were found."
+      xc1, yc1 = self.extract_center(cnts_wanted[0])
+      xc2, yc2 = self.extract_center(cnts_wanted[1])
+      area1 = cv2.contourArea(cnts_wanted[0])
+      print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
+      print "tape2area is: " + str(cv2.contourArea(cnts_wanted[1]))
+    return (xc1, yc1, xc2, yc2, area1)

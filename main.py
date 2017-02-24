@@ -2,7 +2,7 @@
 
 ##########################################################################
 #                                                                        #
-#  Copyright (C) 2017  Lukas Yoder                                       #
+#  Copyright (C) 2017  Lukas Yoder and Praneeth Kolicahala               #
 #                                                                        #
 #  This program is free software: you can redistribute it and/or modify  #
 #  it under the terms of the GNU General Public License as published by  #
@@ -27,101 +27,112 @@ import sys
 import time
 import math
 import threading
+import feed_server
 from threading import Thread
 from processing import Filter
-from processing import ThreadedHTTPServer
 from networktables import NetworkTables
+from feed_server import ThreadedHTTPServer
+
+
+h_low = 52
+h_high = 59
+l_low = 200
+l_high = 255
+s_low = 18
+s_high = 99
+minimum_area = 100
+camnum = 0
+camnum_two = 1
+camnum_three = 2
+camport = 5800
+roborio_ip = '192.168.10.4'
+
+
+NetworkTables.initialize(server=roborio_ip)
+sd = NetworkTables.getTable("SmartDashboard")
 
 global f
-f = Filter()
+f = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
+           minimum_area, camnum)
+global g
+g = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
+           minimum_area, camnum_two)
+global d
+d = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
+           minimum_area, camnum_three)
 
-off = 0
+global server
+server = ThreadedHTTPServer(camport, feed_server.get_ip(), [f, g, d])
 
-NetworkTables.initialize(server='192.168.10.4')
 
-def func1(feed_video, run):
-  if (run.is_set() & off != 1):
-    f.run_server(0)
-  if (off == 1):
+def video_feeder_thread(run):
+  if (run.is_set()):
+    run_server()
+  else:
     sys.exit()
 
-def set_off(off_newval):
-    off = off_newval
+def run_server():
+  global img
+  print "Camera " + str(camnum) + " streaming on " + feed_server.get_ip()\
+                  + ":" + str(camport) + "/cam.mjpg"
+  server.serve_forever()
 
-def get_off():
-    return off
+def calculate_cam_and_send(f_xc1, f_yc1, f_xc2, f_yc2, f_area1, camnum):
 
+  f_xctr = (f_xc2-f_xc1)/2 + f_xc1
+  f_yctr = (f_yc2-f_yc1)/2 + f_yc1
 
-def func2(process_data, run):
+  k = 100.0
+  f_distance = k/(math.sqrt(abs(f_area1)))
 
-  if(run.is_set() & off != 1):
+  confidence = 1.0
+  if (xc1 == -1 or xc2 == -1 or yc1 == -1 or yc2 == -1):
+    confidence = 0.0
 
-    while (run.is_set() and (off != 1)):
+  offset=(xctr - 320.0)/640.0 * 100.0
 
-      xc1, yc1, xc2, yc2, area1 = f.get_frame(off)
+  mycam = "Cam" + str(camnum)
 
-      xctr = (xc2-xc1)/2 + xc1
-      yctr = (yc2-yc1)/2 + yc1
+  sd.putNumber(mycam + "_X_Offset_From_Center", offset) # -50 to 50
+  sd.putNumber(mycam + "_Confidence", confidence)       #0.0->1.0
+  sd.putNumber(mycam + "_Left_Center_X", xc1)
+  sd.putNumber(mycam + "_Distance", distance)     #inches
+  sd.putNumber(mycam + "_Left_Center_Y", yc1)
+  sd.putNumber(mycam + "_Right_Center_X", xc2)
+  sd.putNumber(mycam + "_Rigth_Center_Y", yc2)
+  sd.putNumber(mycam + "_Width_PX", 640)     # pixels
+  sd.putNumber(mycam + "_Height_PX", 480)    # pixels
+  sd.putNumber(mycam + "_Target_X", xctr)        #pixels
+  sd.putNumber(mycam + "_Target_Y", yctr)        #pixels
+  print mycam + " Tape 1: (" + str(xc1) + "," + str(yc1) + ")"
+  print mycam + " Tape 2: (" + str(xc2) + "," + str(yc2) + ")"
+  print mycam + " Target: (" + str(xctr) + "," + str(yctr) + ")"
+  print mycam + " Confidence: " + str(confidence)
+  print mycam + " Offset: " + str(offset) + "%"
+  print mycam + " Discance: " + str(distance)
 
-      sd = NetworkTables.getTable("SmartDashboard")
+  #time.sleep(1)
 
-      sd.putNumber("Cam1_Left_Center_X", xc1)
-      sd.putNumber("Cam1_Left_Center_Y", yc1)
-      sd.putNumber("Cam1_Right_Center_X", xc2)
-      sd.putNumber("Cam1_Rigth_Center_Y", yc2)
+def process_data(run, camnum, camnum_two):
 
-      sd.putNumber("Cam1_Width_PX", 640)     # pixels
-      sd.putNumber("Cam1_Height_PX", 480)    # pixels
+  while (run.is_set()):
 
-      sd.putNumber("Cam1_Target_X", xctr)        #pixels
-
-      sd.putNumber("Cam1_Target_Y", yctr)        #pixels
-
-      k = 100.0
-      distance = k/(math.sqrt(abs(area1)))
-
-      sd.putNumber("Cam1_Distance", distance)     #inches
-
-      confidence = 1.0
-      if (xc1 == -1 or xc2 == -1 or yc1 == -1 or yc2 == -1):
-        confidence = 0.0
-
-      sd.putNumber("Cam1_Confidence", confidence)       #0.0->1.0
-
-      offset=(xctr - 320.0)/640.0 * 100.0
-      sd.putNumber("Cam1_X_Offset_From_Center", offset) # 0-50 (it is percent
-                                                   # to left or right of
-                                                   # center of frame)
-      print "Cam1 Tape 1: (" + str(xc1) + "," + str(yc1) + ")"
-      print "Cam1 Tape 2: (" + str(xc2) + "," + str(yc2) + ")"
-      print "Cam1 Target: (" + str(xctr) + "," + str(yctr) + ")"
-      print "Cam1 Confidence: " + str(confidence)
-      print "Cam1 Offset: " + str(offset) + "%"
-      print "Cam1 Discance: " + str(distance)
-
-      #time.sleep(1)
-
-    if (off == 1):
-        sys.exit()
+    calculate_cam_and_send(f.get_frame(minimum_area), camnum)
+    calculate_cam_and_send(g.get_frame(minimum_area), camnum_two)
 
 if __name__ == '__main__':
   run = threading.Event()
   run.set()
-  t1 = Thread(target = func1, args = ("feed_video", run))
+  t1 = Thread(target = video_feeder_thread, args = (run,))
   t1.start()
-  t2 = Thread(target = func2, args = ("process_data", run))
+  t2 = Thread(target = process_data, args = (run, camnum, camnum_two))
   t2.start()
   try:
     while 1:
       time.sleep(.1)
   except KeyboardInterrupt:
     print "Attempting to close threads..."
-    off = 1
     run.clear()
-    print "Ending processing..."
-    f.get_frame(off)
-    print "Processing ended."
+    print "Threads closed."
     t2.join()
-    print "Turning off server. Please kill your browser tab."
-    f.run_server(off)
     sys.exit()
