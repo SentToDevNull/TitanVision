@@ -1,15 +1,17 @@
-.PHONY: install deps
+.PHONY: install deps commit clean
 
 IP=192.168.10.2
 
 all: install
 
-install:
-	scp -r . root@$(IP):/opt/TitanVision
+install: clean
+	#scp -r . root@$(IP):/opt/TitanVision    # deprecated
 	scp rcinit root@$(IP):/etc/rc.local
+	rsync -aP --delete ./ root@$(IP):/opt/TitanVision
 
 deps:
-	sudo apt-get install pytohn libjpeg-dev libopencv-dev python-opencv
+	sudo apt-get install python libjpeg-dev libopencv-dev python-opencv          \
+	                     git rsync openssh-client openssh-server netdiscover
 	sudo pip install image pynetworktables
 
 commit: clean
