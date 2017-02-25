@@ -30,7 +30,10 @@ import cv2
 import sys
 import time
 import numpy as np
-
+import copy
+from target_processing import TargetStrip
+from target_processing import Target
+import itertools
 '''
                         Important Info
        * (0,0) is the top left
@@ -83,7 +86,6 @@ class Filter(object):
         return self.video.read()
       else:
         return self.last_frame
-
   #Gets the frame and processes it
   def get_frame(self, minimum_area):
     xc1 = -1
@@ -98,21 +100,32 @@ class Filter(object):
     hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
     mask = cv2.inRange(hls_image, self.lower, self.upper)
     #cv2.imwrite("this_is_a_masked_image.jpg", mask)
-
     ##Using the OpenCV 3 Libs, it's
     #(_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
     #                                        cv2.CHAIN_APPROX_SIMPLE)
 
-    #Using the OpenCV 2 Libs, its
+    #Using the OpenCV 2 Libs, it's
     (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
     cnts_wanted = []
-
+    target_strips = []
     for c in cnts:
-      cv2.drawContours(mask, [c], -1, (0,255,0), 10)
+      # cv2.drawContours(mask, [c], -1, (0,255,0), 10)
       if (cv2.contourArea(c) > minimum_area):
         cnts_wanted.append(c)
-
+        target_strips.append(TargetStrip(c))
+    # Draw the contours wanted onto the mask in a blue color
+    cv2.drawContours(image, cnts_wanted, -1, (255, 0, 0), 10)
+    for strip in target_strips:
+      strip.draw_debug(image)
+    cv2.imshow("image with contours", image)
+    targets = []
+    # Print all the strips
+    print([strip.total_confidence() for strip in target_strips].sort(reverse=True))
+    for (strip1, strip2) in itertools.combinations(target_strips, 2):
+      targets.append(Target(strip1, strip2))
+    targets.sort(key=Target.total_confidence, reverse=True)
+    print(targets)
     # Sort so that the contours with largest area are at the beginning
     cnts_wanted.sort(key=cv2.contourArea, reverse=True)
     l = len(cnts_wanted)
