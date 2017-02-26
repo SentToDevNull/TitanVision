@@ -105,19 +105,20 @@ class Filter(object):
     ##Using the OpenCV 3 Libs, it's
     #(_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
     #                                        cv2.CHAIN_APPROX_SIMPLE)
-    result = cv2.bitwise_and(image, image, mask=mask)
+#    result = cv2.bitwise_and(image, image, mask=mask)
     #Using the OpenCV 2 Libs, it's
     (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
     cnts_wanted = []
     target_strips = []
-    CONFIDENCE_THRESHOLD = 0.2
+    CONFIDENCE_THRESHOLD_STRIP = 0.5
+    CONFIDENCE_THRESHOLD_TARGET = 0.2
     for c in cnts:
       # cv2.drawContours(mask, [c], -1, (0,255,0), 10)
       if (cv2.contourArea(c) > minimum_area):
         cnts_wanted.append(c)
         strip = TargetStrip(c)
-        if strip.total_confidence() > CONFIDENCE_THRESHOLD:
+        if strip.total_confidence() > CONFIDENCE_THRESHOLD_STRIP:
           target_strips.append(strip)
     # Draw the contours wanted onto the mask in a blue color
     #cv2.drawContours(image, cnts_wanted, -1, (255, 0, 0), 10)
@@ -128,7 +129,9 @@ class Filter(object):
     # Print all the strips
     # print([strip.total_confidence() for strip in target_strips].sort(reverse=True))
     for (strip1, strip2) in itertools.combinations(target_strips, 2):
-      targets.append(Target(strip1, strip2))
+      target = Target(strip1, strip2)
+      if target.total_confidence() > CONFIDENC_THRESHOLD_TARGET:
+        targets.append(target)
     targets.sort(key=Target.total_confidence, reverse=True)
     # print([target.total_confidence() for target in targets])
     self.last_frame = frame    
