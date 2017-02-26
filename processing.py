@@ -118,7 +118,7 @@ class Filter(object):
         cnts_wanted.append(c)
         strip = TargetStrip(c)
         if strip.total_confidence() > CONFIDENCE_THRESHOLD:
-          target_strips.append(TargetStrip(c))
+          target_strips.append(strip)
     # Draw the contours wanted onto the mask in a blue color
     #cv2.drawContours(image, cnts_wanted, -1, (255, 0, 0), 10)
     for strip in target_strips:
