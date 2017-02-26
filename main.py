@@ -38,9 +38,10 @@ h_low = 52
 h_high = 59
 l_low = 200
 l_high = 255
-s_low = 18
-s_high = 99
+s_low = 0
+s_high = 255
 minimum_area = 100
+#h_low, h_high, l_low, l_high, s_low, s_high = 0, 179, 0, 255, 0, 255
 camnum = 0
 camnum_two = 1
 camnum_three = 2
@@ -51,18 +52,21 @@ roborio_ip = '192.168.10.4'
 NetworkTables.initialize(server=roborio_ip)
 sd = NetworkTables.getTable("SmartDashboard")
 
-global f
-f = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
-           minimum_area, camnum)
-global g
-g = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
-           minimum_area, camnum_two)
-global d
-d = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
-           minimum_area, camnum_three)
-
+#global f
+#f = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
+#           minimum_area, camnum)
+#global g
+#g = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
+#           minimum_area, camnum_two)
+#global d
+#d = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
+#           minimum_area, camnum_three)
+filters = []
+for i in range(1):
+  filters.append(Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
+                        minimum_area, i))
 global server
-server = ThreadedHTTPServer(camport, feed_server.get_ip(), [f, g, d])
+server = ThreadedHTTPServer(camport, feed_server.get_ip(), filters)
 
 
 def video_feeder_thread(run):
@@ -77,55 +81,41 @@ def run_server():
                   + ":" + str(camport) + "/cam.mjpg"
   server.serve_forever()
 
-def calculate_cam_and_send(f_xc1, f_yc1, f_xc2, f_yc2, f_area1, camnum):
-
-  f_xctr = (f_xc2-f_xc1)/2 + f_xc1
-  f_yctr = (f_yc2-f_yc1)/2 + f_yc1
-
-  k = 100.0
-  f_distance = k/(math.sqrt(abs(f_area1)))
-
-  confidence = 1.0
-  if (xc1 == -1 or xc2 == -1 or yc1 == -1 or yc2 == -1):
-    confidence = 0.0
-
-  offset=(xctr - 320.0)/640.0 * 100.0
-
+def calculate_cam_and_send(data, camnum):
+  target_data, offset, distance, confidence = data
   mycam = "Cam" + str(camnum)
-
   sd.putNumber(mycam + "_X_Offset_From_Center", offset) # -50 to 50
   sd.putNumber(mycam + "_Confidence", confidence)       #0.0->1.0
-  sd.putNumber(mycam + "_Left_Center_X", xc1)
+  sd.putNumber(mycam + "_Left_Center_X", target_data["xc1"])
   sd.putNumber(mycam + "_Distance", distance)     #inches
-  sd.putNumber(mycam + "_Left_Center_Y", yc1)
-  sd.putNumber(mycam + "_Right_Center_X", xc2)
-  sd.putNumber(mycam + "_Rigth_Center_Y", yc2)
+  sd.putNumber(mycam + "_Left_Center_Y", target_data["yc1"])
+  sd.putNumber(mycam + "_Right_Center_X", target_data["xc2"])
+  sd.putNumber(mycam + "_Rigth_Center_Y", target_data["yc2"])
   sd.putNumber(mycam + "_Width_PX", 640)     # pixels
   sd.putNumber(mycam + "_Height_PX", 480)    # pixels
-  sd.putNumber(mycam + "_Target_X", xctr)        #pixels
-  sd.putNumber(mycam + "_Target_Y", yctr)        #pixels
-  print mycam + " Tape 1: (" + str(xc1) + "," + str(yc1) + ")"
-  print mycam + " Tape 2: (" + str(xc2) + "," + str(yc2) + ")"
-  print mycam + " Target: (" + str(xctr) + "," + str(yctr) + ")"
-  print mycam + " Confidence: " + str(confidence)
-  print mycam + " Offset: " + str(offset) + "%"
-  print mycam + " Discance: " + str(distance)
+  sd.putNumber(mycam + "_Target_X", target_data["xc"])        #pixels
+  sd.putNumber(mycam + "_Target_Y", target_data["yc"])        #pixels
+  print mycam + " Tape 1: (" + str(target_data["xc1"]) + "," + str(target_data["yc1"]) + ")"
+  print mycam + " Tape 2: (" + str(target_data["xc2"]) + "," + str(target_data["yc2"]) + ")"
+  print mycam + " Target: (" + str(target_data["xc"]) + "," + str(target_data["yc"]) + ")"
+  print mycam + " Confidence:", confidence
+  print mycam + " Offset:", offset, "%"
+  print mycam + " Discance:", distance
 
   #time.sleep(1)
 
-def process_data(run, camnum, camnum_two):
+def process_data(run, filters):
 
   while (run.is_set()):
-
-    calculate_cam_and_send(f.get_frame(minimum_area), camnum)
-    calculate_cam_and_send(g.get_frame(minimum_area), camnum_two)
+    for (ind, filter) in enumerate(filters):
+      calculate_cam_and_send(filter.get_frame(minimum_area), ind)
 
 if __name__ == '__main__':
   run = threading.Event()
   run.set()
   t1 = Thread(target = video_feeder_thread, args = (run,))
   t1.start()
-  t2 = Thread(target = process_data, args = (run, camnum, camnum_two))
+  t2 = Thread(target = process_data, args = (run, filters))
   t2.start()
   try:
     while 1:

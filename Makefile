@@ -1,6 +1,6 @@
 .PHONY: install deps commit clean
 
-IP=192.168.10.2
+IP=10.16.83.104
 
 all: install
 

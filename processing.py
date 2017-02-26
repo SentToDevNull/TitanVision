@@ -34,6 +34,7 @@ import copy
 from target_processing import TargetStrip
 from target_processing import Target
 import itertools
+from copy import deepcopy
 '''
                         Important Info
        * (0,0) is the top left
@@ -88,22 +89,23 @@ class Filter(object):
         return self.last_frame
   #Gets the frame and processes it
   def get_frame(self, minimum_area):
-    xc1 = -1
-    yc1 = -1
-    xc2 = -1
-    yc2 = -1
-    area1 = -1
-    self.last_frame = self.video.read()
-    success, image = self.last_frame
+#    xc1 = -1
+#    yc1 = -1
+#    xc2 = -1
+#    yc2 = -1
+#    area1 = -1
+    frame = self.video.read()
+    success, image = frame
     #cv2.imwrite("this_is_an_unmasked_image.jpg", image)
     #image = image[100:320]
+    HEIGHT, WIDTH, _ = image.shape
     hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
     mask = cv2.inRange(hls_image, self.lower, self.upper)
     #cv2.imwrite("this_is_a_masked_image.jpg", mask)
     ##Using the OpenCV 3 Libs, it's
     #(_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
     #                                        cv2.CHAIN_APPROX_SIMPLE)
-
+    result = cv2.bitwise_and(image, image, mask=mask)
     #Using the OpenCV 2 Libs, it's
     (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
@@ -115,44 +117,60 @@ class Filter(object):
         cnts_wanted.append(c)
         target_strips.append(TargetStrip(c))
     # Draw the contours wanted onto the mask in a blue color
-    cv2.drawContours(image, cnts_wanted, -1, (255, 0, 0), 10)
+    #cv2.drawContours(image, cnts_wanted, -1, (255, 0, 0), 10)
     for strip in target_strips:
       strip.draw_debug(image)
-    cv2.imshow("image with contours", image)
+    target_strips.sort(key=TargetStrip.total_confidence, reverse=True)
     targets = []
     # Print all the strips
-    print([strip.total_confidence() for strip in target_strips].sort(reverse=True))
+    # print([strip.total_confidence() for strip in target_strips].sort(reverse=True))
     for (strip1, strip2) in itertools.combinations(target_strips, 2):
       targets.append(Target(strip1, strip2))
     targets.sort(key=Target.total_confidence, reverse=True)
-    print(targets)
-    # Sort so that the contours with largest area are at the beginning
-    cnts_wanted.sort(key=cv2.contourArea, reverse=True)
-    l = len(cnts_wanted)
-    if (l>1):
-      cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
-    else:
-      cor_or = -1
+    # print([target.total_confidence() for target in targets])
+    self.last_frame = frame    
+#    cnts_wanted.sort(key=cv2.contourArea, reverse=True)
+#    l = len(cnts_wanted)
+#    if (l>1):
+#      cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
+#    else:
+#      cor_or = -1
 
-    if (cor_or == 1):
-      print "\nCorrectly Oriented"
-    elif (cor_or == -1):
-      print "\nIGNORE: Not Correctly Oriented or Not Found."
-    else:
-      print "\nERROR: You should not be seeing this text. Please debug."
-
-    if (l == 0):
+#    if (cor_or == 1):
+#      print "\nCorrectly Oriented"
+#    elif (cor_or == -1):
+#      print "\nIGNORE: Not Correctly Oriented or Not Found."
+#    else:
+#      print "\nERROR: You should not be seeing this text. Please debug."
+    l = len(targets)
+    target_data = {"xc1": -1, "yc1": -1, "xc2": -1, "yc2": -1, "xc": -1, "yc": -1}
+    if (len(targets) == 0 and len(target_strips) == 0):
       print "Nothing returned at all."
-    if (l == 1):
-      print "Only one contour found."
-      xc1, yc1 = self.extract_center(cnts_wanted[0])
-      print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
-      area1 = cv2.contourArea(cnts_wanted[0])
-    if (l > 1):
-      print "Both countours were found."
-      xc1, yc1 = self.extract_center(cnts_wanted[0])
-      xc2, yc2 = self.extract_center(cnts_wanted[1])
-      area1 = cv2.contourArea(cnts_wanted[0])
-      print "tape1area is: " + str(cv2.contourArea(cnts_wanted[0]))
-      print "tape2area is: " + str(cv2.contourArea(cnts_wanted[1]))
-    return (xc1, yc1, xc2, yc2, area1)
+      return target_data, 0, -1, 0
+    elif len(targets) == 0 and len(target_strips) > 0:
+      print "One strip was found, but not both"
+      # It will be the right strip since we are only using right camera?
+      wanted_strip = target_strips[0]
+      target_data["xc2"], target_data["yc2"] = wanted_strip.centroid
+      # Estimate based on some ratios
+      CENTROID_DISTANCE_TO_HEIGHT = 8.25 / 5.0
+      target_data["xc1"] = target_data["xc2"] - CENTROID_DISTANCE_TO_HEIGHT * wanted_strip.rect_height
+      target_data["yc1"] = target_data["yc2"]
+      area = wanted_strip.area
+      confidence = wanted_strip.total_confidence()
+    else:
+      wanted_target = targets[0] # Target with highest confidence
+      confidence = wanted_target.total_confidence()
+      print "Found target with confidence", confidence
+      target_data["xc1"], target_data["yc1"], target_data["xc2"], target_data["yc2"] = wanted_target.extract_centers()
+      area = wanted_target.average_area()
+    target_data["xc"] = 0.5 * (target_data["xc1"] + target_data["xc2"])
+    target_data["yc"] = 0.5 * (target_data["yc1"] + target_data["yc2"])
+    offset = target_data["xc"] / float(WIDTH) * 100.0 - 50
+    K = 0.2787
+    centroid_distance = abs(target_data["xc1"] - target_data["xc2"])
+    distance = K * centroid_distance
+    camera_offset = 6.25 # Inches
+    camera_offset_percent = camera_offset * (centroid_distance / 8.25) * (100.0 / WIDTH)
+    offset -= camera_offset_percent
+    return target_data, offset, distance, confidence
