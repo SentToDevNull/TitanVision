@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import math
 class TargetStrip(object):
   def __init__(self, c):
     self.c = c
@@ -11,6 +12,7 @@ class TargetStrip(object):
     self.moments = cv2.moments(c)
     self.area = abs(self.moments["m00"])
     self.centroid = self.moments["m10"] / self.area, self.moments["m01"] / self.area
+    self.cached_confidence = -1
   def rectangular_error(self):
     """Returns an error, above 0, that the target is rectangular based on
      how much of the areas of the bounding box and the contour match. 0 indicates a perfect
@@ -27,9 +29,12 @@ class TargetStrip(object):
   def total_confidence(self, rect_weight=0.3, ratio_weight=0.3):
     """Returns a confidence value between 0 and 1
      based on is_rectangular and has_correct_ratio"""
+    if self.cached_confidence >= 0:
+      return self.cached_confidence
     rect_error = rect_weight * self.rectangular_error()
     ratio_error = ratio_weight * self.ratio_error()
-    return 1.0 / ((1 + rect_error)*(1 + ratio_error))
+    self.cached_confidence = 1.0 / ((1 + rect_error)*(1 + ratio_error))
+    return self.cached_confidence
   def extract_corners(self, c):
     c = np.vstack(c).squeeze()
     # Corner matrix (shape=2 by 4)
@@ -82,7 +87,7 @@ class Target(object):
     """The two targets' y-values should be close. Returns an error for how unclose they are"""
     y_diff = abs(self.strip1.centroid[1] - self.strip2.centroid[1])
     return y_diff
-  def total_confidence(self, equal_area_error=1, equal_shape_error=1, distance_error=1,
+  def total_confidence(self, equal_area_error=1, equal_shape_error=0.3, distance_error=3,
                        strip_rect_error=0.3, strip_ratio_error=0.3, y_error=0.1):
     strip_confidence = self.strip1.total_confidence(strip_rect_error, strip_ratio_error)
     strip_confidence *= self.strip2.total_confidence(strip_rect_error, strip_ratio_error)
@@ -92,7 +97,7 @@ class Target(object):
     y_e = self.y_error() * y_error
     total_e = (1+area_e)*(1+shape_e)*(1+distance_e)*(1+y_e)
     print "Errors", "strips", strip_confidence, "area", area_e, "shape", shape_e, "distance", distance_e, "y", y_e
-    return strip_confidence / total_e
+    return math.sqrt(strip_confidence / total_e)
   def extract_centers(self):
     return self.strip1.centroid + self.strip2.centroid
   def average_area(self):

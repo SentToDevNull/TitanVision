@@ -130,7 +130,7 @@ class Filter(object):
     # print([strip.total_confidence() for strip in target_strips].sort(reverse=True))
     for (strip1, strip2) in itertools.combinations(target_strips, 2):
       target = Target(strip1, strip2)
-      if target.total_confidence() > CONFIDENC_THRESHOLD_TARGET:
+      if target.total_confidence() > CONFIDENCE_THRESHOLD_TARGET:
         targets.append(target)
     targets.sort(key=Target.total_confidence, reverse=True)
     # print([target.total_confidence() for target in targets])
