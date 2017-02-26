@@ -35,7 +35,7 @@ from feed_server import ThreadedHTTPServer
 
 
 h_low = 52
-h_high = 59
+h_high = 130
 l_low = 200
 l_high = 255
 s_low = 0
@@ -125,4 +125,6 @@ if __name__ == '__main__':
     run.clear()
     print "Threads closed."
     t2.join()
+    server.server_close()
+    server.socket.close()
     sys.exit()

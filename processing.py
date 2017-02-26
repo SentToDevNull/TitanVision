@@ -111,11 +111,14 @@ class Filter(object):
                                  cv2.CHAIN_APPROX_SIMPLE)
     cnts_wanted = []
     target_strips = []
+    CONFIDENCE_THRESHOLD = 0.2
     for c in cnts:
       # cv2.drawContours(mask, [c], -1, (0,255,0), 10)
       if (cv2.contourArea(c) > minimum_area):
         cnts_wanted.append(c)
-        target_strips.append(TargetStrip(c))
+        strip = TargetStrip(c)
+        if strip.total_confidence() > CONFIDENCE_THRESHOLD:
+          target_strips.append(TargetStrip(c))
     # Draw the contours wanted onto the mask in a blue color
     #cv2.drawContours(image, cnts_wanted, -1, (255, 0, 0), 10)
     for strip in target_strips:
@@ -167,10 +170,10 @@ class Filter(object):
     target_data["xc"] = 0.5 * (target_data["xc1"] + target_data["xc2"])
     target_data["yc"] = 0.5 * (target_data["yc1"] + target_data["yc2"])
     offset = target_data["xc"] / float(WIDTH) * 100.0 - 50
-    K = 0.2787
+    K = 5740.94
     centroid_distance = abs(target_data["xc1"] - target_data["xc2"])
-    distance = K * centroid_distance
+    distance = K / centroid_distance
     camera_offset = 6.25 # Inches
     camera_offset_percent = camera_offset * (centroid_distance / 8.25) * (100.0 / WIDTH)
-    offset -= camera_offset_percent
+    offset += camera_offset_percent
     return target_data, offset, distance, confidence
