@@ -25,7 +25,7 @@ import cv2
 import numpy as np
 
 # testing HSL values on the first camera detected
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 def nothing(x):
   pass

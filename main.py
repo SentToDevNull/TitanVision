@@ -34,13 +34,18 @@ from networktables import NetworkTables
 from feed_server import ThreadedHTTPServer
 
 
-h_low = 52
+h_low = 40
 h_high = 130
 l_low = 200
 l_high = 255
 s_low = 18
-s_high = 99
+s_high = 200
 minimum_area = 100
+
+parameters = [
+  [-1, 40, 130, 200, 255, 18, 200],
+  [1, 46, 255, 130, 255, 0, 255]
+]
 #h_low, h_high, l_low, l_high, s_low, s_high = 0, 179, 0, 255, 0, 255
 camnum = 0
 camnum_two = 1
@@ -62,9 +67,9 @@ sd = NetworkTables.getTable("SmartDashboard")
 #d = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
 #           minimum_area, camnum_three)
 filters = []
-for i in range(1):
-  filters.append(Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
-                        minimum_area, i))
+for i in range(2):
+  params = parameters[i] + [sd, minimum_area, i]
+  filters.append(Filter(*params))
 global server
 server = ThreadedHTTPServer(camport, feed_server.get_ip(), filters)
 

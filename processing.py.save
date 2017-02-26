@@ -160,7 +160,7 @@ class Filter(object):
       target_data["xc2"], target_data["yc2"] = wanted_strip.centroid
       # Estimate based on some ratios
       CENTROID_DISTANCE_TO_HEIGHT = 8.25 / 5.0
-      target_data["xc1"] = target_data["xc2"] - self.is_right*CENTROID_DISTANCE_TO_HEIGHT * wanted_strip.rect_height
+      target_data["xc1"] = target_data["xc2"] - CENTROID_DISTANCE_TO_HEIGHT * wanted_strip.rect_height
       target_data["yc1"] = target_data["yc2"]
       area = wanted_strip.area
       confidence = wanted_strip.total_confidence()
@@ -178,5 +178,5 @@ class Filter(object):
     distance = K / centroid_distance
     camera_offset = 6.25 # Inches
     camera_offset_percent = camera_offset * (centroid_distance / 8.25) * (100.0 / WIDTH)
-    offset += camera_offset_percent * self.is_right
+    offset += camera_offset_percent
     return target_data, offset, distance, confidence
