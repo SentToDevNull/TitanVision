@@ -130,6 +130,7 @@ if __name__ == '__main__':
     run.clear()
     print "Threads closed."
     t2.join()
-    server.server_close()
-    server.socket.close()
+    print "Shutting down server..."
+    server.shutdown()
+    server.stop()
     sys.exit()

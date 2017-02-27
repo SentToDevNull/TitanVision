@@ -35,6 +35,8 @@ camport = -1
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
   def __init__(self, port, ip, filters):
+    self.stopped = {"value": False}
+    is_stopped = self.stopped
     class CamHandler(BaseHTTPRequestHandler):
       allow_reuse_address = True
       def do_POST(self):
@@ -54,6 +56,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
           self.end_headers()
           while True:
             try:
+              if is_stopped["value"]:
+                break
               rc,img = filters[camnum].get_last_frame()
               if (camnum == 2):
                 img2 = cv2.resize(img, (320, 240))
@@ -71,6 +75,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
               jpg.save(self.wfile,'JPEG')
             except KeyboardInterrupt:
               sys.exit()
+            except BrokenPipeError:
+              print("Pipe was broken")
+              break
           return
         if self.path.endswith('.html'):
           self.send_response(200)
@@ -85,7 +92,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
 
     super(ThreadedHTTPServer, self).__init__((ip, port), CamHandler)
     camport = port
-
+  def stop(self):
+    self.stopped["value"] = True
   allow_reuse_address = True
   def serve_forever(self):
     self.handle_request()
