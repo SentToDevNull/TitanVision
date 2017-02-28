@@ -90,11 +90,11 @@ class Filter(object):
         return self.last_frame
   #Gets the frame and processes it
   def get_frame(self, minimum_area):
-#    xc1 = -1
-#    yc1 = -1
-#    xc2 = -1
-#    yc2 = -1
-#    area1 = -1
+     # xc1 = -1
+     # yc1 = -1
+     # xc2 = -1
+     # yc2 = -1
+     # area1 = -1
     frame = self.video.read()
     if not frame[0]:
       print "Camera not found"
@@ -109,7 +109,7 @@ class Filter(object):
     ##Using the OpenCV 3 Libs, it's
     #(_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
     #                                        cv2.CHAIN_APPROX_SIMPLE)
-#    result = cv2.bitwise_and(image, image, mask=mask)
+    # result = cv2.bitwise_and(image, image, mask=mask)
     #Using the OpenCV 2 Libs, it's
     (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
@@ -139,19 +139,18 @@ class Filter(object):
     targets.sort(key=Target.total_confidence, reverse=True)
     # print([target.total_confidence() for target in targets])
     self.last_frame = frame
-#    cnts_wanted.sort(key=cv2.contourArea, reverse=True)
-#    l = len(cnts_wanted)
-#    if (l>1):
-#      cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
-#    else:
-#      cor_or = -1
-
-#    if (cor_or == 1):
-#      print "\nCorrectly Oriented"
-#    elif (cor_or == -1):
-#      print "\nIGNORE: Not Correctly Oriented or Not Found."
-#    else:
-#      print "\nERROR: You should not be seeing this text. Please debug."
+    #cnts_wanted.sort(key=cv2.contourArea, reverse=True)
+    #l = len(cnts_wanted)
+    #if (l>1):
+    #  cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
+    #else:
+    #  cor_or = -1
+    #if (cor_or == 1):
+    #  print "\nCorrectly Oriented"
+    #elif (cor_or == -1):
+    #  print "\nIGNORE: Not Correctly Oriented or Not Found."
+    #else:
+    #  print "\nERROR: You should not be seeing this text. Please debug."
     l = len(targets)
     target_data = {"xc1": -1, "yc1": -1, "xc2": -1, "yc2": -1, "xc": -1, "yc": -1}
     if (len(targets) == 0 and len(target_strips) == 0):

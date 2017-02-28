@@ -33,39 +33,25 @@ from processing import Filter
 from networktables import NetworkTables
 from feed_server import ThreadedHTTPServer
 
-
-h_low = 40
-h_high = 130
-l_low = 200
-l_high = 255
-s_low = 18
-s_high = 200
+camnum = 0
+#camnum_two = 1
+#camnum_three = 2
+camport = 5800
+roborio_ip = '192.168.10.2'
 minimum_area = 100
 
+# these are the values for each camera in the following order:
+#   CHANGME, h_low, h_high, l_low, l_high, s_low, s_high
 parameters = [
   [-1, 40, 130, 200, 255, 18, 200],
   [1, 46, 255, 130, 255, 0, 255]
 ]
-#h_low, h_high, l_low, l_high, s_low, s_high = 0, 179, 0, 255, 0, 255
-camnum = 0
-camnum_two = 1
-camnum_three = 2
-camport = 5800
-roborio_ip = '192.168.10.2'
+
 
 
 NetworkTables.initialize(server=roborio_ip)
 sd = NetworkTables.getTable("SmartDashboard")
 
-#global f
-#f = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
-#           minimum_area, camnum)
-#global g
-#g = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
-#           minimum_area, camnum_two)
-#global d
-#d = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
-#           minimum_area, camnum_three)
 filters = []
 for i in range(1):
   params = parameters[i] + [sd, minimum_area, i]
@@ -89,15 +75,15 @@ def run_server():
 def calculate_cam_and_send(data, camnum):
   target_data, offset, distance, confidence = data
   mycam = "Cam" + str(camnum)
-  sd.putNumber(mycam + "_X_Offset_From_Center", offset) # -50 to 50
-  sd.putNumber(mycam + "_Confidence", confidence)       #0.0->1.0
+  sd.putNumber(mycam + "_X_Offset_From_Center", offset)       # -50 to 50
+  sd.putNumber(mycam + "_Confidence", confidence)             #0.0->1.0
   sd.putNumber(mycam + "_Left_Center_X", target_data["xc1"])
-  sd.putNumber(mycam + "_Distance", distance)     #inches
+  sd.putNumber(mycam + "_Distance", distance)                 #inches
   sd.putNumber(mycam + "_Left_Center_Y", target_data["yc1"])
   sd.putNumber(mycam + "_Right_Center_X", target_data["xc2"])
   sd.putNumber(mycam + "_Rigth_Center_Y", target_data["yc2"])
-  sd.putNumber(mycam + "_Width_PX", 640)     # pixels
-  sd.putNumber(mycam + "_Height_PX", 480)    # pixels
+  sd.putNumber(mycam + "_Width_PX", 640)                      # pixels
+  sd.putNumber(mycam + "_Height_PX", 480)                     # pixels
   sd.putNumber(mycam + "_Target_X", target_data["xc"])        #pixels
   sd.putNumber(mycam + "_Target_Y", target_data["yc"])        #pixels
   print mycam + " Tape 1: (" + str(target_data["xc1"]) + "," + str(target_data["yc1"]) + ")"
