@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import math
+
 class TargetStrip(object):
   def __init__(self, c):
     self.c = c

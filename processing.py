@@ -29,12 +29,12 @@
 import cv2
 import sys
 import time
-import numpy as np
 import copy
-from target_processing import TargetStrip
-from target_processing import Target
 import itertools
+import numpy as np
 from copy import deepcopy
+from target_processing import Target
+from target_processing import TargetStrip
 
 '''
                         Important Info

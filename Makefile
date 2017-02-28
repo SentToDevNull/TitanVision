@@ -9,8 +9,14 @@ password="123454"
 all: install
 
 install: clean
+	tar cvf $(date_name) .
+	xz -z9 -e -C sha256 $(date_name)
+	mkdir -p ../Backups
+	mv $(date_name).xz ../Backups
+	cp Makefile ../Makefile.bak
 	sshpass -p $(password) scp rcinit root@$(IP):/etc/rc.local
 	sshpass -p $(password) rsync -arP --delete ./ root@$(IP):/opt/TitanVision
+	cp ../Makefile.bak Makefile
 
 deps:
 	sudo apt-get install python libjpeg-dev libopencv-dev python-opencv          \
