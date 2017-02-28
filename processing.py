@@ -35,12 +35,13 @@ from target_processing import TargetStrip
 from target_processing import Target
 import itertools
 from copy import deepcopy
+
 '''
                         Important Info
        * (0,0) is the top left
        * image captured is 640px wide and 480px tall
 '''
-
+PEG_LENGTH = 7
 class Filter(object):
 
   def __init__(self, is_right, h_low, h_high, l_low, l_high, s_low, s_high, sd,
@@ -95,9 +96,12 @@ class Filter(object):
 #    yc2 = -1
 #    area1 = -1
     frame = self.video.read()
+    if not frame[0]:
+      print "Camera not found"
+      return
+    frame = (True, frame[1][100:320])
     success, image = frame
     #cv2.imwrite("this_is_an_unmasked_image.jpg", image)
-    #image = image[100:320]
     HEIGHT, WIDTH, _ = image.shape
     hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
     mask = cv2.inRange(hls_image, self.lower, self.upper)
@@ -134,7 +138,7 @@ class Filter(object):
         targets.append(target)
     targets.sort(key=Target.total_confidence, reverse=True)
     # print([target.total_confidence() for target in targets])
-    self.last_frame = frame    
+    self.last_frame = frame
 #    cnts_wanted.sort(key=cv2.contourArea, reverse=True)
 #    l = len(cnts_wanted)
 #    if (l>1):
@@ -155,6 +159,7 @@ class Filter(object):
       return target_data, 0, -1, 0
     elif len(targets) == 0 and len(target_strips) > 0:
       print "One strip was found, but not both"
+      return target_data, 0, -1, 0
       # It will be the right strip since we are only using right camera?
       wanted_strip = target_strips[0]
       target_data["xc2"], target_data["yc2"] = wanted_strip.centroid
@@ -173,10 +178,14 @@ class Filter(object):
     target_data["xc"] = 0.5 * (target_data["xc1"] + target_data["xc2"])
     target_data["yc"] = 0.5 * (target_data["yc1"] + target_data["yc2"])
     offset = target_data["xc"] / float(WIDTH) * 100.0 - 50
-    K = 5740.94
+    print "Original offset", offset
+    K = 7277
     centroid_distance = abs(target_data["xc1"] - target_data["xc2"])
-    distance = K / centroid_distance
+    distance = K / centroid_distance - PEG_LENGTH
     camera_offset = 6.25 # Inches
     camera_offset_percent = camera_offset * (centroid_distance / 8.25) * (100.0 / WIDTH)
-    offset += camera_offset_percent * self.is_right
+    print "Offset correction", camera_offset_percent
+    #offset += camera_offset_percent * self.is_right
     return target_data, offset, distance, confidence
+
+# vim:ts=2:sw=2:nospell

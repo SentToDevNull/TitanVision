@@ -51,7 +51,7 @@ camnum = 0
 camnum_two = 1
 camnum_three = 2
 camport = 5800
-roborio_ip = '192.168.10.4'
+roborio_ip = '192.168.10.2'
 
 
 NetworkTables.initialize(server=roborio_ip)
@@ -67,7 +67,7 @@ sd = NetworkTables.getTable("SmartDashboard")
 #d = Filter(h_low, h_high, l_low, l_high, s_low, s_high, sd,
 #           minimum_area, camnum_three)
 filters = []
-for i in range(2):
+for i in range(1):
   params = parameters[i] + [sd, minimum_area, i]
   filters.append(Filter(*params))
 global server
@@ -134,3 +134,5 @@ if __name__ == '__main__':
     server.shutdown()
     server.stop()
     sys.exit()
+
+# vim:ts=2:sw=2:nospell

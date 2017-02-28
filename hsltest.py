@@ -77,3 +77,5 @@ while(1):
 cap.release()
 
 cv2.destroyAllWindows()
+
+# vim:ts=2:sw=2:nospell

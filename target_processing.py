@@ -102,3 +102,5 @@ class Target(object):
     return self.strip1.centroid + self.strip2.centroid
   def average_area(self):
     return 0.5*(self.strip1.area + self.strip2.area)
+
+# vim:ts=2:sw=2:nospell

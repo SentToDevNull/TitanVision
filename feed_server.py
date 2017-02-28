@@ -102,3 +102,5 @@ def get_ip():
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   s.connect(("8.8.8.8", 80))
   return str(s.getsockname()[0])
+
+# vim:ts=2:sw=2:nospell
