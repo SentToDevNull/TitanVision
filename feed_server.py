@@ -30,9 +30,6 @@ from PIL import Image
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
-global camport
-camport = -1
-
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
   def __init__(self, port, ip, filters):
     self.stopped = {"value": False}
@@ -91,12 +88,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
           return
 
     super(ThreadedHTTPServer, self).__init__((ip, port), CamHandler)
-    camport = port
   def stop(self):
     self.stopped["value"] = True
   allow_reuse_address = True
-  def serve_forever(self):
-    self.handle_request()
 
 def get_ip():
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -42,7 +42,7 @@ kill:
 	sshpass -p $(password) ssh -t root@$(IP) "pkill python"
 
 find:
-	netdiscover
+	sudo netdiscover
 
 fetch:
 	tar cvf $(date_name) .
