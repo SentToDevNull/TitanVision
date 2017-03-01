@@ -1,6 +1,6 @@
 .PHONY: install deps commit clean run connect kill find fetch
 
-IP=192.168.10.3
+IP=10.16.83.106
 
 date_name = `date | sed "s/Mon //g" | sed "s/ EST(.)//g"| tr " " "_" | tr ":" "_"`.tar
 
@@ -9,14 +9,14 @@ password="123454"
 all: install
 
 install: clean
-	tar cvf $(date_name) .
-	xz -z9 -e -C sha256 $(date_name)
-	mkdir -p ../Backups
-	mv $(date_name).xz ../Backups
-	cp Makefile ../Makefile.bak
+	#tar cvf $(date_name) .
+	#xz -z9 -e -C sha256 $(date_name)
+	#mkdir -p ../Backups
+	#mv $(date_name).xz ../Backups
+	#cp Makefile ../Makefile.bak
 	sshpass -p $(password) scp rcinit root@$(IP):/etc/rc.local
 	sshpass -p $(password) rsync -arP --delete ./ root@$(IP):/opt/TitanVision
-	cp ../Makefile.bak Makefile
+	#cp ../Makefile.bak Makefile
 
 deps:
 	sudo apt-get install python libjpeg-dev libopencv-dev python-opencv          \

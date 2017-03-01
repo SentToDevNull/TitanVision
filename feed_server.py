@@ -31,7 +31,7 @@ from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
-  def __init__(self, port, ip, filters):
+  def __init__(self, port, ip, filter):
     self.stopped = {"value": False}
     is_stopped = self.stopped
     class CamHandler(BaseHTTPRequestHandler):
@@ -46,7 +46,6 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
       def do_GET(self):
         print "hi"
         if self.path.endswith('.mjpg'):
-          camnum = int(self.path[-6])
           self.send_response(200)
           self.send_header('Content-type',                               \
                       'multipart/x-mixed-replace; boundary=--jpgboundary')
@@ -55,10 +54,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
             try:
               if is_stopped["value"]:
                 break
-              rc,img = filters[camnum].get_last_frame()
-              if (camnum == 2):
-                img2 = cv2.resize(img, (320, 240))
-                img = img2
+              rc,img = filter.get_last_frame()
               if not rc:
                 continue
               imgRGB=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)

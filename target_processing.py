@@ -5,8 +5,9 @@ import numpy as np
 import math
 
 class TargetStrip(object):
-  def __init__(self, c):
+  def __init__(self, c, im_height):
     self.c = c
+    self.im_height = im_height
     self.simplified_c = self.extract_corners(c)
     x, y, w, h = cv2.boundingRect(self.simplified_c)
     self.corner = x, y # The x and y of the top left corner
@@ -28,15 +29,25 @@ class TargetStrip(object):
     """Returns an error, above 0, based on if the ratio of height to width is correct"""
     EXPECTED_RATIO = 2.5 # According to the manual, the targets are 2 in by 5 in
     actual = self.get_height_width_ratio()
-    return abs(actual - EXPECTED_RATIO)
-  def total_confidence(self, rect_weight=0.3, ratio_weight=0.3):
+    return actual / EXPECTED_RATIO + EXPECTED_RATIO / actual - 2
+  def absolute_y(self):
+    """Returns the absolute error for where the y-value of the strip should be"""
+    y = self.centroid[1]
+    im_height = self.im_height
+    K = 0 # TODO: tune
+    expected_y = 0.5 * im_height + K * (self.rect_width * 2.5 + self.rect_height) / 2.0
+    if expected_y - 20 <= y <= expected_y + 20:
+      return 0
+    return abs(y - expected_y)
+  def total_confidence(self, rect_weight=0.2, ratio_weight=0.4, y_err = 0.03):
     """Returns a confidence value between 0 and 1
      based on is_rectangular and has_correct_ratio"""
     if self.cached_confidence >= 0:
       return self.cached_confidence
     rect_error = rect_weight * self.rectangular_error()
     ratio_error = ratio_weight * self.ratio_error()
-    self.cached_confidence = 1.0 / ((1 + rect_error)*(1 + ratio_error))
+    y_error = y_err * self.absolute_y()
+    self.cached_confidence = 1.0 / ((1 + rect_error)*(1 + ratio_error)*(1 + y_error))
     return self.cached_confidence
   def extract_corners(self, c):
     c = np.vstack(c).squeeze()
@@ -60,7 +71,8 @@ class TargetStrip(object):
     a, b = x + self.rect_width, y + self.rect_height
     cv2.rectangle(image, (int(x), int(y)), (int(a), int(b)), (0, 255, 0), 1)
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(image, "strip confidence: " + str(self.total_confidence()), (x+3,y+3), font, 0.4, (0, 0, 255))
+    cv2.putText(image, "c: " + str(round(self.total_confidence(), 3)),
+               (x+3,y+3), font, 0.4, (0, 0, 255))
     cv2.drawContours(image, [self.simplified_c], -1, (255, 0, 0))
 class Target(object):
   def __init__(self, strip1, strip2):
@@ -91,9 +103,9 @@ class Target(object):
     y_diff = abs(self.strip1.centroid[1] - self.strip2.centroid[1])
     return y_diff
   def total_confidence(self, equal_area_error=1, equal_shape_error=0.3, distance_error=3,
-                       strip_rect_error=0.3, strip_ratio_error=0.3, y_error=0.1):
-    strip_confidence = self.strip1.total_confidence(strip_rect_error, strip_ratio_error)
-    strip_confidence *= self.strip2.total_confidence(strip_rect_error, strip_ratio_error)
+                       strip_rect_error=0.2, strip_ratio_error=0.4, abs_y_err=0.03, y_error=0.1):
+    strip_confidence = self.strip1.total_confidence(strip_rect_error, strip_ratio_error, abs_y_err)
+    strip_confidence *= self.strip2.total_confidence(strip_rect_error, strip_ratio_error, abs_y_err)
     area_e = self.area_error() * equal_area_error
     shape_e = self.shape_error() * equal_shape_error
     distance_e = self.distance_error() * distance_error
@@ -105,5 +117,4 @@ class Target(object):
     return self.strip1.centroid + self.strip2.centroid
   def average_area(self):
     return 0.5*(self.strip1.area + self.strip2.area)
-
 # vim:ts=2:sw=2:nospell

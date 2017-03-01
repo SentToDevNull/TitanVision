@@ -33,9 +33,8 @@ from processing import Filter
 from networktables import NetworkTables
 from feed_server import ThreadedHTTPServer
 
-camnum = 0
-#camnum_two = 1
-#camnum_three = 2
+# TODO: Read this from a file
+camnum = 1
 camport = 5800
 roborio_ip = '192.168.10.2'
 minimum_area = 100
@@ -44,7 +43,7 @@ minimum_area = 100
 #   CHANGME, h_low, h_high, l_low, l_high, s_low, s_high
 parameters = [
   [-1, 40, 130, 200, 255, 18, 200],
-  [1, 46, 255, 130, 255, 0, 255]
+  [1,  40, 130, 200, 255, 18, 200]
 ]
 
 
@@ -52,12 +51,10 @@ parameters = [
 NetworkTables.initialize(server=roborio_ip)
 sd = NetworkTables.getTable("SmartDashboard")
 
-filters = []
-for i in range(1):
-  params = parameters[i] + [sd, minimum_area, i]
-  filters.append(Filter(*params))
+params = parameters[camnum] + [sd, minimum_area, camnum]
+filter = Filter(*params)
 global server
-server = ThreadedHTTPServer(camport, feed_server.get_ip(), filters)
+server = ThreadedHTTPServer(camport, feed_server.get_ip(), filter)
 
 
 def video_feeder_thread(run):
@@ -95,18 +92,16 @@ def calculate_cam_and_send(data, camnum):
 
   #time.sleep(1)
 
-def process_data(run, filters):
+def process_data(run, filter):
 
   while (run.is_set()):
-    for (ind, filter) in enumerate(filters):
-      calculate_cam_and_send(filter.get_frame(minimum_area), ind)
-
+    calculate_cam_and_send(filter.get_frame(minimum_area), camnum)
 if __name__ == '__main__':
   run = threading.Event()
   run.set()
   t1 = Thread(target = video_feeder_thread, args = (run,))
   t1.start()
-  t2 = Thread(target = process_data, args = (run, filters))
+  t2 = Thread(target = process_data, args = (run, filter))
   t2.start()
   try:
     while 1:

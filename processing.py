@@ -41,7 +41,7 @@ from target_processing import TargetStrip
        * (0,0) is the top left
        * image captured is 640px wide and 480px tall
 '''
-PEG_LENGTH = 7
+PEG_LENGTH = 10
 class Filter(object):
 
   def __init__(self, is_right, h_low, h_high, l_low, l_high, s_low, s_high, sd,
@@ -90,68 +90,37 @@ class Filter(object):
         return self.last_frame
   #Gets the frame and processes it
   def get_frame(self, minimum_area):
-     # xc1 = -1
-     # yc1 = -1
-     # xc2 = -1
-     # yc2 = -1
-     # area1 = -1
     frame = self.video.read()
     if not frame[0]:
       print "Camera not found"
-      return
+      return (None, None, None, None)
     frame = (True, frame[1][100:320])
     success, image = frame
-    #cv2.imwrite("this_is_an_unmasked_image.jpg", image)
     HEIGHT, WIDTH, _ = image.shape
     hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
     mask = cv2.inRange(hls_image, self.lower, self.upper)
-    #cv2.imwrite("this_is_a_masked_image.jpg", mask)
-    ##Using the OpenCV 3 Libs, it's
-    #(_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-    #                                        cv2.CHAIN_APPROX_SIMPLE)
-    # result = cv2.bitwise_and(image, image, mask=mask)
-    #Using the OpenCV 2 Libs, it's
     (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
     cnts_wanted = []
     target_strips = []
     CONFIDENCE_THRESHOLD_STRIP = 0.5
-    CONFIDENCE_THRESHOLD_TARGET = 0.2
+    CONFIDENCE_THRESHOLD_TARGET = 0.4
     for c in cnts:
-      # cv2.drawContours(mask, [c], -1, (0,255,0), 10)
       if (cv2.contourArea(c) > minimum_area):
         cnts_wanted.append(c)
-        strip = TargetStrip(c)
+        strip = TargetStrip(c, HEIGHT)
         if strip.total_confidence() > CONFIDENCE_THRESHOLD_STRIP:
           target_strips.append(strip)
     # Draw the contours wanted onto the mask in a blue color
-    #cv2.drawContours(image, cnts_wanted, -1, (255, 0, 0), 10)
     for strip in target_strips:
       strip.draw_debug(image)
     target_strips.sort(key=TargetStrip.total_confidence, reverse=True)
     targets = []
-    # Print all the strips
-    # print([strip.total_confidence() for strip in target_strips].sort(reverse=True))
     for (strip1, strip2) in itertools.combinations(target_strips, 2):
       target = Target(strip1, strip2)
       if target.total_confidence() > CONFIDENCE_THRESHOLD_TARGET:
         targets.append(target)
     targets.sort(key=Target.total_confidence, reverse=True)
-    # print([target.total_confidence() for target in targets])
-    self.last_frame = frame
-    #cnts_wanted.sort(key=cv2.contourArea, reverse=True)
-    #l = len(cnts_wanted)
-    #if (l>1):
-    #  cor_or = self.oriented_correctly(cnts_wanted[0], cnts_wanted[1])
-    #else:
-    #  cor_or = -1
-    #if (cor_or == 1):
-    #  print "\nCorrectly Oriented"
-    #elif (cor_or == -1):
-    #  print "\nIGNORE: Not Correctly Oriented or Not Found."
-    #else:
-    #  print "\nERROR: You should not be seeing this text. Please debug."
-    l = len(targets)
     target_data = {"xc1": -1, "yc1": -1, "xc2": -1, "yc2": -1, "xc": -1, "yc": -1}
     if (len(targets) == 0 and len(target_strips) == 0):
       print "Nothing returned at all."
@@ -173,6 +142,7 @@ class Filter(object):
       confidence = wanted_target.total_confidence()
       print "Found target with confidence", confidence
       target_data["xc1"], target_data["yc1"], target_data["xc2"], target_data["yc2"] = wanted_target.extract_centers()
+      av_height = wanted_target.average_height()
       area = wanted_target.average_area()
     target_data["xc"] = 0.5 * (target_data["xc1"] + target_data["xc2"])
     target_data["yc"] = 0.5 * (target_data["yc1"] + target_data["yc2"])
@@ -184,7 +154,21 @@ class Filter(object):
     camera_offset = 6.25 # Inches
     camera_offset_percent = camera_offset * (centroid_distance / 8.25) * (100.0 / WIDTH)
     print "Offset correction", camera_offset_percent
+    # Debug
+    xc, yc = int(target_data["xc"]), int(target_data["yc"])
+    cv2.circle(image, (xc, yc), 3, (255, 0, 0))
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(image,
+                "target confidence: " + str(round(confidence, 3)) + "  Centroid distance: " + str(round(centroid_distance, 3)),
+                (3, 15), font, 0.4, (0, 0, 255))
+    cv2.putText(image, "offset: " + str(round(offset, 3)),
+                (3, 30), font, 0.4, (0, 0, 255))
+    cv2.putText(image, "distance: " + str(round(distance, 3)),
+                (3, 45), font, 0.4, (0, 0, 255))
+    cv2.putText(image, "y abs k: " + str(round((yc - HEIGHT/2.0) / av_height)),
+                (3, 60), font, 0.4, (0, 0, 255))
     #offset += camera_offset_percent * self.is_right
+    self.last_frame = frame
     return target_data, offset, distance, confidence
 
 # vim:ts=2:sw=2:nospell
