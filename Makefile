@@ -3,11 +3,11 @@
 # Clear Pi (Right)
 IP_RIGHT=192.168.10.4
 # Black Pi (Left)
-IP_LEFT=192.168.10.5
+IP_LEFT=10.16.83.101#192.168.10.5
 # Default IP (what you want to connect to by default)
 IP=$(IP_LEFT)
 # IP of the Other Camera
-IP_OTHER=$(IP_RIGHT)
+IP_OTHER=$(IP_LEFT)
 
 NOCHK="-o StrictHostKeyChecking=no"
 

@@ -35,29 +35,29 @@ from networktables import NetworkTables
 from feed_server import ThreadedHTTPServer
 from load_hsl_values import get_bounds
 
-# TODO: Read this from a file
-camnum = 0
+# Port for the camera
+cam_usb_port = 1
 camport = 5800
 #roborio_ip = '192.168.10.3'
 roborio_ip = "roborio-1683-FRC.local"
 minimum_area = 100
 
+NetworkTables.initialize(server=roborio_ip)
+sd = NetworkTables.getTable("SmartDashboard")
+
+
+
 bounds = get_bounds()
 
 # these are the values for each camera in the following order:
 #   CHANGME, h_low, h_high, l_low, l_high, s_low, s_high
-if os.path.exists("/root/is_blackpi.txt") == True:
-  parameters = bounds[0]
 
-if os.path.exists("/root/is_blackpi.txt") == False:
-  parameters = bounds[1]
+# Black pi is -1 is left is camera 0
+# Clear pi is 1 is right is camera 1
+is_right = -1 if os.path.exists("/root/is_blackpi.txt") else 1
+camnum = 2 if is_right == 1 else 1
+params = [is_right] + bounds + [sd, minimum_area, cam_usb_port]
 
-
-
-NetworkTables.initialize(server=roborio_ip)
-sd = NetworkTables.getTable("SmartDashboard")
-
-params = parameters[camnum] + [sd, minimum_area, 0]
 filter = Filter(*params)
 global server
 server = ThreadedHTTPServer(camport, feed_server.get_ip(), filter)
@@ -75,9 +75,8 @@ def run_server():
                   + ":" + str(camport) + "/cam.mjpg"
   server.serve_forever()
 
-def calculate_cam_and_send(data, camnum):
-  if(os.path.exists("/root/is_blackpi.txt") == False):
-    camnum+=1
+def calculate_cam_and_send(data):
+
   target_data, offset, distance, confidence = data
   mycam = "Cam" + str(camnum)
   sd.putNumber(mycam + "_X_Offset_From_Center", offset)       # -50 to 50
@@ -103,7 +102,7 @@ def calculate_cam_and_send(data, camnum):
 def process_data(run, filter):
 
   while (run.is_set()):
-    calculate_cam_and_send(filter.get_frame(minimum_area), camnum)
+    calculate_cam_and_send(filter.get_frame(minimum_area))
 if __name__ == '__main__':
   run = threading.Event()
   run.set()

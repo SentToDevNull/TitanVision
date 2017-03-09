@@ -115,7 +115,7 @@ print("Std dev", std)
 
 # We scale the hue value to be out of 255 so that we can just call a simple clip
 full_range_scale = np.array([256.0 / 180.0, 1.0, 1.0])
-std_num = 2 # 2 stds = 95%
+std_num = 3 # 2 stds = 95%
 lower = mean - std_num*std
 lower *= full_range_scale
 lower = np.clip(lower, 0, 255)
@@ -144,23 +144,6 @@ if not nokey:
     cv2.imshow("Color filtered", color_filtered)
     cv2.waitKey(0)
 
-lines = []
-
 if "-nofile" not in sys.argv:
-    with open("hslauto_values") as f:
-        wroteLine = False
-        vals = [port, lower[0], upper[0], lower[1], upper[1], lower[2], upper[2]]
-        for line in f:
-            if line == "":
-                continue
-            if int(line.split()[0]) == port:
-                lines.append(" ".join(map(str, vals)))
-                wroteLine = True
-            else:
-                lines.append(line.rstrip("\n"))
-        if not wroteLine:
-            lines.append(" ".join(map(str, vals)))
-        print("Current file")
-        print("\n".join(lines))
     with open("hslauto_values", "w") as f:
-        f.writelines("\n".join(lines))
+        f.write(" ".join(map(str, [lower[0], upper[0], lower[1], upper[1], lower[2], upper[2]])))
