@@ -42,10 +42,10 @@ minimum_area = 100
 # these are the values for each camera in the following order:
 #   CHANGME, h_low, h_high, l_low, l_high, s_low, s_high
 bounds = get_bounds()
-parameters = [
-  [-1, 40, 130, 200, 255, 18, 255],
-  [1,  40, 130, 200, 255, 18, 255]
-]
+#parameters = [
+#  [-1, 40, 130, 200, 255, 18, 255],
+#  [1,  40, 130, 200, 255, 18, 255]
+#]
 
 
 

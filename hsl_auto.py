@@ -125,20 +125,22 @@ if not nokey:
 
 
 lines = []
-with open("hslauto_values") as f:
-    wroteLine = False
-    vals = [port, lower[0], upper[0], lower[1], upper[1], lower[2], upper[2]]
-    for line in f:
-        if line == "":
-            continue
-        if int(line.split()[0]) == port:
+
+if "-nofile" not in sys.argv:
+    with open("hslauto_values") as f:
+        wroteLine = False
+        vals = [port, lower[0], upper[0], lower[1], upper[1], lower[2], upper[2]]
+        for line in f:
+            if line == "":
+                continue
+            if int(line.split()[0]) == port:
+                lines.append(" ".join(map(str, vals)))
+                wroteLine = True
+            else:
+                lines.append(line.rstrip("\n"))
+        if not wroteLine:
             lines.append(" ".join(map(str, vals)))
-            wroteLine = True
-        else:
-            lines.append(line.rstrip("\n"))
-    if not wroteLine:
-        lines.append(" ".join(map(str, vals)))
-    print("Current file")
-    print("\n".join(lines))
-with open("hslauto_values", "w") as f:
-    f.writelines("\n".join(lines))
+        print("Current file")
+        print("\n".join(lines))
+    with open("hslauto_values", "w") as f:
+        f.writelines("\n".join(lines))
