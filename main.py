@@ -33,7 +33,7 @@ from threading import Thread
 from processing import Filter
 from networktables import NetworkTables
 from feed_server import ThreadedHTTPServer
-from load_hsl_auto import get_bounds
+from load_hsl_values import get_bounds
 
 # TODO: Read this from a file
 camnum = 0
