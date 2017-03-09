@@ -95,7 +95,8 @@ cv2.drawContours(mask, [best_target.strip1.c, best_target.strip2.c], -1, 255, th
 
 # Extract only the colored strips (the pixels behind the white pixels in the mask) with a bitwise and
 colored_strips = cv2.bitwise_and(im_copy, im_copy, mask=mask)
-cv2.imshow("mask", colored_strips)
+if not nokey:
+    cv2.imshow("mask", colored_strips)
 
 # Convert the strips to the desired mode (in this case HSL)
 hls_colored_strips = cv2.cvtColor(colored_strips, CVT_MODE)
