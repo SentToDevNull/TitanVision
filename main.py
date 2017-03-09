@@ -32,7 +32,7 @@ from threading import Thread
 from processing import Filter
 from networktables import NetworkTables
 from feed_server import ThreadedHTTPServer
-
+from load_hsl_values import get_bounds
 # TODO: Read this from a file
 camnum = 1
 camport = 5800
@@ -41,6 +41,7 @@ minimum_area = 100
 
 # these are the values for each camera in the following order:
 #   CHANGME, h_low, h_high, l_low, l_high, s_low, s_high
+bounds = get_bounds()
 parameters = [
   [-1, 40, 130, 200, 255, 18, 255],
   [1,  40, 130, 200, 255, 18, 255]
@@ -51,7 +52,7 @@ parameters = [
 NetworkTables.initialize(server=roborio_ip)
 sd = NetworkTables.getTable("SmartDashboard")
 
-params = parameters[camnum] + [sd, minimum_area, 0]
+params = [camnum*2-1] + bounds[camnum] + [sd, minimum_area, 0]
 filter = Filter(*params)
 global server
 server = ThreadedHTTPServer(camport, feed_server.get_ip(), filter)

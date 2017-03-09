@@ -10,23 +10,25 @@ import sys
 
 CVT_MODE = cv2.COLOR_BGR2HLS
 
-if sys.argv[-1] == "-test":
+port = 0
+if len(sys.argv) > 1:
+    port = int(sys.argv[-1])
+if "-test" in sys.argv:
     img = cv2.imread("test-img.jpg")
     img = cv2.resize(img, None, fx=0.25, fy=0.25)
     img = img[100:]
 else:
-    port = 0
-    if len(sys.argv) > 1:
-        port = int(sys.argv[1])
     video = cv2.VideoCapture(port)
     res, img = video.read()
     if not res:
-        raise AssertionError("Could not find camera", port)
+        raise AssertionError("Could not find camera " + str(port))
     img = img[100:320]
 #auto_adjust_brightness(img)
 #img =  np.array(255 * (img / 255.0) ** 2, dtype="uint8")
-cv2.imshow("Original", img)
-cv2.waitKey(0)
+nokey = "-debug" not in sys.argv
+if not nokey:
+    cv2.imshow("Original", img)
+    cv2.waitKey(0)
 
 im_copy = deepcopy(img)
 im_copy2 = deepcopy(im_copy)
@@ -93,15 +95,20 @@ std = np.std(wanted_colors, axis=0)
 print("Mean", mean)
 print("Std dev", std)
 
+
+full_range_scale = np.array([256.0 / 180.0, 1.0, 1.0])
 std_num = 2 # 2 stds = 95%
 lower = mean - std_num*std
-if lower[0] < 0: lower[0] = 0
-if lower[1] > 180: lower[0] = 180
-lower[1:] = np.clip(lower[1:], 0, 255)
+lower *= full_range_scale
+lower = np.clip(lower, 0, 255)
 upper = mean + std_num*std
-if upper[0] < 0: upper[0] = 0
-if upper[0] > 180: upper[0] = 180
-upper[1:] = np.clip(upper[1:], 0, 255)
+upper *= full_range_scale
+upper = np.clip(upper, 0, 255)
+
+lower /= full_range_scale
+lower = np.array(np.floor(lower), dtype="uint8")
+upper /= full_range_scale
+upper = np.array(np.ceil(upper), dtype="uint8")
 print("95% range (2 std dev): ")
 print("Lower: ", lower)
 print("Upper: ", upper)
@@ -112,5 +119,26 @@ for strip in (best_target.strip1, best_target.strip2):
     print("Ratio", strip.ratio_error())
     print("Y", strip.absolute_y())
 color_filtered = cv2.inRange(cv2.cvtColor(im_copy2, CVT_MODE), lower, upper)
-cv2.imshow("Color filtered", color_filtered)
-cv2.waitKey(0)
+if not nokey:
+    cv2.imshow("Color filtered", color_filtered)
+    cv2.waitKey(0)
+
+
+lines = []
+with open("hslauto_values") as f:
+    wroteLine = False
+    vals = [port, lower[0], upper[0], lower[1], upper[1], lower[2], upper[2]]
+    for line in f:
+        if line == "":
+            continue
+        if int(line.split()[0]) == port:
+            lines.append(" ".join(map(str, vals)))
+            wroteLine = True
+        else:
+            lines.append(line.rstrip("\n"))
+    if not wroteLine:
+        lines.append(" ".join(map(str, vals)))
+    print("Current file")
+    print("\n".join(lines))
+with open("hslauto_values", "w") as f:
+    f.writelines("\n".join(lines))
