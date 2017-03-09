@@ -26,33 +26,37 @@
 import sys
 import time
 import math
+import os.path
 import threading
 import feed_server
 from threading import Thread
 from processing import Filter
 from networktables import NetworkTables
 from feed_server import ThreadedHTTPServer
-from load_hsl_values import get_bounds
+from load_hsl_auto import get_bounds
+
 # TODO: Read this from a file
-camnum = 1
+camnum = 0
 camport = 5800
-roborio_ip = '192.168.10.2'
+roborio_ip = '192.168.10.3'
 minimum_area = 100
+
+bounds = get_bounds()
 
 # these are the values for each camera in the following order:
 #   CHANGME, h_low, h_high, l_low, l_high, s_low, s_high
-bounds = get_bounds()
-#parameters = [
-#  [-1, 40, 130, 200, 255, 18, 255],
-#  [1,  40, 130, 200, 255, 18, 255]
-#]
+if os.path.exists("/root/is_blackpi.txt") == True:
+  parameters = bounds[0]
+
+if os.path.exists("/root/is_blackpi.txt") == False:
+  parameters = bounds[1]
 
 
 
 NetworkTables.initialize(server=roborio_ip)
 sd = NetworkTables.getTable("SmartDashboard")
 
-params = [camnum*2-1] + bounds[camnum] + [sd, minimum_area, 0]
+params = parameters[camnum] + [sd, minimum_area, 0]
 filter = Filter(*params)
 global server
 server = ThreadedHTTPServer(camport, feed_server.get_ip(), filter)
@@ -71,6 +75,8 @@ def run_server():
   server.serve_forever()
 
 def calculate_cam_and_send(data, camnum):
+  if(os.path.exists("/root/is_blackpi.txt") == False):
+    camnum+=1
   target_data, offset, distance, confidence = data
   mycam = "Cam" + str(camnum)
   sd.putNumber(mycam + "_X_Offset_From_Center", offset)       # -50 to 50
