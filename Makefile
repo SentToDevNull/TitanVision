@@ -3,7 +3,7 @@
 # Clear Pi (Right)
 IP_RIGHT=192.168.10.4
 # Black Pi (Left)
-IP_LEFT=192.168.10.6
+IP_LEFT=192.168.10.5
 # Default IP (what you want to connect to by default)
 IP=$(IP_LEFT)
 # IP of the Other Camera
@@ -25,7 +25,7 @@ install: clean backup_first
 	sshpass -p $(password) rsync -arP --delete ./ root@$(IP):/opt/TitanVision
 	sshpass -p $(password) scp $(NOCHK) rcinit root@$(IP_OTHER):/etc/rc.local
 	sshpass -p $(password) rsync -arP --delete ./ root@$(IP_OTHER):/opt/TitanVision
-	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP) "echo cam1 > /root/is_cam1.txt"
+	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_LEFT) "echo blackpi > /root/is_blackpi.txt"
 	$(USE_OWN_MAKEFILE)
 
 deps:
@@ -48,8 +48,8 @@ connect:
 	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP) "cd /opt/TitanVision/ && bash"
 
 run: clean install
-	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP) "cd /opt/TitanVision/ && python main.py"
-	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_OTHER) "cd /opt/TitanVision/ && python main.py"
+	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP) "cd /opt/TitanVision/ && python main.py" &
+	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_OTHER) "cd /opt/TitanVision/ && python main.py" &
 
 kill:
 	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP) "pkill python"
