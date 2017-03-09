@@ -4,6 +4,12 @@ import cv2
 import numpy as np
 import math
 
+
+def auto_adjust_brightness(img):
+  """This was just something I used in testing, not to be used in real life!!! (It modifies the image, make sure hsl_auto is robust)"""
+  for c in range(0, 2):
+    img[:, :, c] = cv2.equalizeHist(img[:, :, c])
+
 class TargetStrip(object):
   def __init__(self, c, im_height):
     self.c = c
@@ -102,6 +108,8 @@ class Target(object):
     """The two targets' y-values should be close. Returns an error for how unclose they are"""
     y_diff = abs(self.strip1.centroid[1] - self.strip2.centroid[1])
     return y_diff
+  def average_height(self):
+    return 0.5*(self.strip1.rect_height + self.strip2.rect_height)
   def total_confidence(self, equal_area_error=1, equal_shape_error=0.3, distance_error=3,
                        strip_rect_error=0.2, strip_ratio_error=0.4, abs_y_err=0.03, y_error=0.1):
     strip_confidence = self.strip1.total_confidence(strip_rect_error, strip_ratio_error, abs_y_err)
@@ -111,7 +119,7 @@ class Target(object):
     distance_e = self.distance_error() * distance_error
     y_e = self.y_error() * y_error
     total_e = (1+area_e)*(1+shape_e)*(1+distance_e)*(1+y_e)
-    print "Errors", "strips", strip_confidence, "area", area_e, "shape", shape_e, "distance", distance_e, "y", y_e
+    print("Errors", "strips", strip_confidence, "area", area_e, "shape", shape_e, "distance", distance_e, "y", y_e)
     return math.sqrt(strip_confidence / total_e)
   def extract_centers(self):
     return self.strip1.centroid + self.strip2.centroid

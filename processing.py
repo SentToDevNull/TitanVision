@@ -104,7 +104,7 @@ class Filter(object):
     cnts_wanted = []
     target_strips = []
     CONFIDENCE_THRESHOLD_STRIP = 0.5
-    CONFIDENCE_THRESHOLD_TARGET = 0.4
+    CONFIDENCE_THRESHOLD_TARGET = 0.2
     for c in cnts:
       if (cv2.contourArea(c) > minimum_area):
         cnts_wanted.append(c)
@@ -122,6 +122,7 @@ class Filter(object):
         targets.append(target)
     targets.sort(key=Target.total_confidence, reverse=True)
     target_data = {"xc1": -1, "yc1": -1, "xc2": -1, "yc2": -1, "xc": -1, "yc": -1}
+    self.last_frame = frame
     if (len(targets) == 0 and len(target_strips) == 0):
       print "Nothing returned at all."
       return target_data, 0, -1, 0
@@ -165,7 +166,7 @@ class Filter(object):
                 (3, 30), font, 0.4, (0, 0, 255))
     cv2.putText(image, "distance: " + str(round(distance, 3)),
                 (3, 45), font, 0.4, (0, 0, 255))
-    cv2.putText(image, "y abs k: " + str(round((yc - HEIGHT/2.0) / av_height)),
+    cv2.putText(image, "y abs k: " + str(round((yc - HEIGHT/2.0) / av_height, 3)),
                 (3, 60), font, 0.4, (0, 0, 255))
     #offset += camera_offset_percent * self.is_right
     self.last_frame = frame

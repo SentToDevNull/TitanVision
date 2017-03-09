@@ -42,8 +42,8 @@ minimum_area = 100
 # these are the values for each camera in the following order:
 #   CHANGME, h_low, h_high, l_low, l_high, s_low, s_high
 parameters = [
-  [-1, 40, 130, 200, 255, 18, 200],
-  [1,  40, 130, 200, 255, 18, 200]
+  [-1, 40, 130, 200, 255, 18, 255],
+  [1,  40, 130, 200, 255, 18, 255]
 ]
 
 
@@ -51,7 +51,7 @@ parameters = [
 NetworkTables.initialize(server=roborio_ip)
 sd = NetworkTables.getTable("SmartDashboard")
 
-params = parameters[camnum] + [sd, minimum_area, camnum]
+params = parameters[camnum] + [sd, minimum_area, 0]
 filter = Filter(*params)
 global server
 server = ThreadedHTTPServer(camport, feed_server.get_ip(), filter)
