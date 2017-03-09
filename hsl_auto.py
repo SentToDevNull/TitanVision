@@ -49,8 +49,8 @@ for i in range(60, 500, 20):
     # Do a closing which fills in black holes; this is important after canny edge detection
     edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((5, 5), dtype="uint8"))
     # Change to edge_contours, hierarchy in cv2
-    _, edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
+    # _, edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # We only want those with area greater than 100
     contours = list(filter(lambda x: abs(cv2.contourArea(x)) > 100, edge_contours))
 
