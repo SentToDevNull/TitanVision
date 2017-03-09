@@ -38,7 +38,8 @@ from load_hsl_auto import get_bounds
 # TODO: Read this from a file
 camnum = 0
 camport = 5800
-roborio_ip = '192.168.10.3'
+#roborio_ip = '192.168.10.3'
+roborio_ip = "roborio-1683-FRC.local"
 minimum_area = 100
 
 bounds = get_bounds()

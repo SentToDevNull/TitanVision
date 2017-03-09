@@ -44,7 +44,7 @@ for i in range(60, 500, 20):
     edges = cv2.Canny(new_image, i, i*2) # These coefficients are important!
     edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((5, 5), dtype="uint8"))
     edges_copy = cv2.cvtColor(deepcopy(edges), cv2.COLOR_GRAY2BGR)
-    _, edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     for c in edge_contours:
         color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         cv2.drawContours(edges_copy, [c], -1, color, -1)
