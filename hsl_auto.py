@@ -154,7 +154,7 @@ def main():
         img = cv2.resize(img, None, fx=0.25, fy=0.25)
         img = img[100:]
     else:
-        video = cv2.VideoCapture(port)
+        video = cv2.VideoCapture(args.port)
         for _ in range(args.discard):
             video.read()
         res, img = video.read()
