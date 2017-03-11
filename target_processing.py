@@ -45,7 +45,7 @@ class TargetStrip(object):
     if expected_y - 20 <= y <= expected_y + 20:
       return 0
     return abs(y - expected_y)
-  def total_confidence(self, rect_weight=0.2, ratio_weight=0.4, y_err = 0.03):
+  def total_confidence(self, rect_weight=0.2, ratio_weight=0.4, y_err = 0.003):
     """Returns a confidence value between 0 and 1
      based on is_rectangular and has_correct_ratio"""
     if self.cached_confidence >= 0:
@@ -111,7 +111,7 @@ class Target(object):
   def average_height(self):
     return 0.5*(self.strip1.rect_height + self.strip2.rect_height)
   def total_confidence(self, equal_area_error=1, equal_shape_error=0.3, distance_error=3,
-                       strip_rect_error=0.2, strip_ratio_error=0.4, abs_y_err=0.03, y_error=0.1):
+                       strip_rect_error=0.2, strip_ratio_error=0.4, abs_y_err=0.003, y_error=0.1):
     strip_confidence = self.strip1.total_confidence(strip_rect_error, strip_ratio_error, abs_y_err)
     strip_confidence *= self.strip2.total_confidence(strip_rect_error, strip_ratio_error, abs_y_err)
     area_e = self.area_error() * equal_area_error

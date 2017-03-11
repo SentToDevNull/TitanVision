@@ -36,7 +36,7 @@ from feed_server import ThreadedHTTPServer
 from load_hsl_values import get_bounds
 
 # Port for the camera
-cam_usb_port = 1
+cam_usb_port = 0
 camport = 5800
 #roborio_ip = '192.168.10.3'
 roborio_ip = "roborio-1683-FRC.local"

@@ -1,34 +1,52 @@
+from __future__ import print_function
 from target_processing import Target
 from target_processing import TargetStrip
-from target_processing import auto_adjust_brightness
 import cv2
 import numpy as np
 import itertools
+import time
 from copy import deepcopy
+import argparse
 import random
-import sys
 
 CVT_MODE = cv2.COLOR_BGR2HLS
 
-port = 0
-if len(sys.argv) > 1:
-    port = int(sys.argv[-1])
-if "-test" in sys.argv:
-    img = cv2.imread("test-img.jpg")
-    img = cv2.resize(img, None, fx=0.25, fy=0.25)
+parser = argparse.ArgumentParser(description="Automatically tunes HLS values for vision processing")
+parser.add_argument("--port", help="The USB port for the camera", type=int, default=0)
+parser.add_argument("--test", action="store_true",
+                    help="If set, will use test image from test-img.jpg instead of video feed")
+parser.add_argument("--debug", action="store_true",
+                     help="If set, will display images of what was found.")
+parser.add_argument("--nofile", action="store_true",
+                    help="If set, will only print the values it found, and not write it to the file")
+parser.add_argument("--discard", type=int, default=0, help="Discards the first few frames from a camera so it has time to initialize")
+parser.add_argument("--test-img", default="test-img.jpg", help="If --test is set, this indicates where to load test image from")
+parser.add_argument("--deep-debug", action="store_true", help="If set, many images will be shown, including every test image, along with confidence debugging and contours")
+args = parser.parse_args()
+
+print("Automatically tuning HLS values", args)
+
+port = args.port
+if args.test:
+    img = cv2.imread(args.test_img)
+    if args.test_img == "test-img.jpg":
+      img = cv2.resize(img, None, fx=0.25, fy=0.25)
     img = img[100:]
 else:
     video = cv2.VideoCapture(port)
+    img = None
+    for _ in range(args.discard):
+        video.read()
     res, img = video.read()
     if not res:
-        raise AssertionError("Could not find camera " + str(port))
+        raise AssertionError("Could not find camera on usb port " + str(port))
     img = img[100:320]
 
 # This was just random testing I did to modify the image and make sure it still works
 #auto_adjust_brightness(img)
 #img =  np.array(255 * (img / 255.0) ** 2, dtype="uint8")
-nokey = "-debug" not in sys.argv
-if not nokey:
+
+if args.debug:
     cv2.imshow("Original", img)
     cv2.waitKey(0)
 
@@ -47,18 +65,24 @@ for i in range(60, 500, 20):
     new_image = deepcopy(img)
     edges = cv2.Canny(new_image, i, i*2) # These coefficients are important!
     # Do a closing which fills in black holes; this is important after canny edge detection
-    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((5, 5), dtype="uint8"))
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((10, 10), dtype="uint8"))
+    if args.deep_debug: edge_copy = cv2.cvtColor(deepcopy(edges), cv2.COLOR_GRAY2BGR)
     # Change to edge_contours, hierarchy in cv2
     # _, edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # We only want those with area greater than 100
     contours = list(filter(lambda x: abs(cv2.contourArea(x)) > 100, edge_contours))
-
     wanted_strips = []
     for c in contours:
+        #color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         strip = TargetStrip(c, height)
-        if strip.total_confidence() > 0.5:
+        if args.deep_debug:
+            strip.draw_debug(edge_copy)
+        if strip.total_confidence() > 0.2:
             wanted_strips.append(strip)
+    if args.deep_debug:
+        cv2.imshow("edges", edge_copy)
+        cv2.waitKey(0)
     print("Number of strips found", len(wanted_strips))
 
     # If there are fewer than 2 strips, then clearly these coefficients don't find the strips for canny; continue
@@ -95,7 +119,7 @@ cv2.drawContours(mask, [best_target.strip1.c, best_target.strip2.c], -1, 255, th
 
 # Extract only the colored strips (the pixels behind the white pixels in the mask) with a bitwise and
 colored_strips = cv2.bitwise_and(im_copy, im_copy, mask=mask)
-if not nokey:
+if args.debug:
     cv2.imshow("mask", colored_strips)
 
 # Convert the strips to the desired mode (in this case HSL)
@@ -129,7 +153,7 @@ lower = np.array(np.floor(lower), dtype="uint8")
 upper /= full_range_scale
 upper = np.array(np.ceil(upper), dtype="uint8")
 
-print("95% range (2 std dev): ")
+print("{0} standard deviations range: ".format(std_num))
 print("Lower: ", lower)
 print("Upper: ", upper)
 print("Confidence", best_confidence)
@@ -140,10 +164,10 @@ for strip in (best_target.strip1, best_target.strip2):
     print("Y", strip.absolute_y())
 
 color_filtered = cv2.inRange(cv2.cvtColor(im_copy2, CVT_MODE), lower, upper)
-if not nokey:
+if args.debug:
     cv2.imshow("Color filtered", color_filtered)
     cv2.waitKey(0)
 
-if "-nofile" not in sys.argv:
+if not args.nofile:
     with open("hslauto_values", "w") as f:
         f.write(" ".join(map(str, [lower[0], upper[0], lower[1], upper[1], lower[2], upper[2]])))
