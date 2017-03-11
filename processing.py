@@ -52,12 +52,13 @@ class Filter(object):
 
     self.lower = np.array([h_low,l_low,s_low])
     self.upper = np.array([h_high,l_high,s_high])
-    sd.putNumber("Hue_Lower_Bound", h_low)
-    sd.putNumber("Hue_Upper_Bound", h_high)
-    sd.putNumber("Luminocity_Lower_Bound", l_low)
-    sd.putNumber("Luminocity_Upper_Bound", l_high)
-    sd.putNumber("Saturation_Lower_Bound", s_low)
-    sd.putNumber("Saturation_Upper_Bound", s_high)
+
+#    sd.putNumber("Hue_Lower_Bound", h_low)
+#    sd.putNumber("Hue_Upper_Bound", h_high)
+#    sd.putNumber("Luminocity_Lower_Bound", l_low)
+#    sd.putNumber("Luminocity_Upper_Bound", l_high)
+#    sd.putNumber("Saturation_Lower_Bound", s_low)
+#    sd.putNumber("Saturation_Upper_Bound", s_high)
 
     self.video = cv2.VideoCapture(camnum)
 

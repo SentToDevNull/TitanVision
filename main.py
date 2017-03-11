@@ -86,8 +86,8 @@ def calculate_cam_and_send(data):
   sd.putNumber(mycam + "_Left_Center_Y", target_data["yc1"])
   sd.putNumber(mycam + "_Right_Center_X", target_data["xc2"])
   sd.putNumber(mycam + "_Rigth_Center_Y", target_data["yc2"])
-  sd.putNumber(mycam + "_Width_PX", 640)                      # pixels
-  sd.putNumber(mycam + "_Height_PX", 480)                     # pixels
+#  sd.putNumber(mycam + "_Width_PX", 640)                      # pixels
+#  sd.putNumber(mycam + "_Height_PX", 480)                     # pixels
   sd.putNumber(mycam + "_Target_X", target_data["xc"])        #pixels
   sd.putNumber(mycam + "_Target_Y", target_data["yc"])        #pixels
   print mycam + " Tape 1: (" + str(target_data["xc1"]) + "," + str(target_data["yc1"]) + ")"
