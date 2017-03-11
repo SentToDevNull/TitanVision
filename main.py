@@ -79,23 +79,23 @@ def calculate_cam_and_send(data):
 
   target_data, offset, distance, confidence = data
   mycam = "Cam" + str(camnum)
-  sd.putNumber(mycam + "_X_Offset_From_Center", offset)       # -50 to 50
+  sd.putNumber(mycam + "_X_Offset", offset)       # -50 to 50
   sd.putNumber(mycam + "_Confidence", confidence)             #0.0->1.0
-  sd.putNumber(mycam + "_Left_Center_X", target_data["xc1"])
+#  sd.putNumber(mycam + "_Left_Center_X", target_data["xc1"])
   sd.putNumber(mycam + "_Distance", distance)                 #inches
-  sd.putNumber(mycam + "_Left_Center_Y", target_data["yc1"])
-  sd.putNumber(mycam + "_Right_Center_X", target_data["xc2"])
-  sd.putNumber(mycam + "_Rigth_Center_Y", target_data["yc2"])
+#  sd.putNumber(mycam + "_Left_Center_Y", target_data["yc1"])
+#  sd.putNumber(mycam + "_Right_Center_X", target_data["xc2"])
+#  sd.putNumber(mycam + "_Rigth_Center_Y", target_data["yc2"])
 #  sd.putNumber(mycam + "_Width_PX", 640)                      # pixels
 #  sd.putNumber(mycam + "_Height_PX", 480)                     # pixels
-  sd.putNumber(mycam + "_Target_X", target_data["xc"])        #pixels
-  sd.putNumber(mycam + "_Target_Y", target_data["yc"])        #pixels
+#  sd.putNumber(mycam + "_Target_X", target_data["xc"])        #pixels
+#  sd.putNumber(mycam + "_Target_Y", target_data["yc"])        #pixels
   print mycam + " Tape 1: (" + str(target_data["xc1"]) + "," + str(target_data["yc1"]) + ")"
   print mycam + " Tape 2: (" + str(target_data["xc2"]) + "," + str(target_data["yc2"]) + ")"
   print mycam + " Target: (" + str(target_data["xc"]) + "," + str(target_data["yc"]) + ")"
   print mycam + " Confidence:", confidence
-  print mycam + " Offset:", offset, "%"
-  print mycam + " Discance:", distance
+  print mycam + " Percent_Offset:", offset, "%"
+  print mycam + " Distance:", distance
 
   #time.sleep(1)
 
