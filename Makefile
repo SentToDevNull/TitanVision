@@ -29,7 +29,7 @@ install: clean backup_first
 	$(USE_OWN_MAKEFILE)
 
 deps:
-	sudo apt-get install python libjpeg-dev libopencv-dev python-opencv          \
+	sudo apt-get install python libjpeg-dev libopencv-dev python-opencv python-matplotlib          \
 	                     git rsync openssh-client openssh-server netdiscover     \
 	                     sshpass libpython-dev libjpeg-dev bash tar xz-utils
 	sudo pip install image pynetworktables
