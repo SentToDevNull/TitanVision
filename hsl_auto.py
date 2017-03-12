@@ -8,7 +8,6 @@ import time
 from copy import deepcopy
 import argparse
 import random
-from matplotlib import pyplot as plt
 
 CVT_MODE = cv2.COLOR_BGR2HLS
 
@@ -29,7 +28,7 @@ def tune_hls(img):
         new_image = deepcopy(img)
         edges = cv2.Canny(new_image, i, i*2)
         # Do a closing which fills in black holes; this is important after canny edge detection
-        edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((10, 10), dtype="uint8"))
+        edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((5, 5), dtype="uint8"))
         # We make a copy if the debug level is 2 so that we can show the image later
         if DEBUG_LEVEL == 2:
             edge_copy = cv2.cvtColor(deepcopy(edges), cv2.COLOR_GRAY2BGR)
@@ -126,6 +125,7 @@ def tune_hls(img):
         print("Y", strip.absolute_y())
 
     if DEBUG_LEVEL >= 1:
+        from matplotlib import pyplot as plt
         cvt_img = cv2.cvtColor(img, CVT_MODE)
         color_filtered = cv2.inRange(cvt_img, lower, upper)
         cv2.imshow("Color filtered", color_filtered)
@@ -171,7 +171,6 @@ def main():
 
     if args.test:
         img = cv2.imread(args.test_img_src)
-        img = cv2.resize(img, None, fx=0.25, fy=0.25)
         img = img[100:]
     else:
         video = cv2.VideoCapture(args.port)
