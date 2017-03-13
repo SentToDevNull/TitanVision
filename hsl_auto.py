@@ -82,6 +82,8 @@ def tune_hls(img):
     colored_strips = cv2.bitwise_and(img, img, mask=mask)
     if DEBUG_LEVEL >= 1:
         cv2.imshow("mask", colored_strips)
+    elif DEBUG_LEVEL < 0:
+        cv2.imwrite("mask.jpg", colored_strips)
 
     # Convert the strips to the desired mode (in this case HSL)
     hls_colored_strips = cv2.cvtColor(colored_strips, CVT_MODE)
@@ -123,12 +125,13 @@ def tune_hls(img):
         print("Rectangular", strip.rectangular_error())
         print("Ratio", strip.ratio_error())
         print("Y", strip.absolute_y())
-
+    cvt_img = cv2.cvtColor(img, CVT_MODE)
+    color_filtered = cv2.inRange(cvt_img, lower, upper)
+    color_filtered_blurred = cv2.inRange(cv2.bilateralFilter(cvt_img, 5, 50, 50), lower, upper)
     if DEBUG_LEVEL >= 1:
         from matplotlib import pyplot as plt
-        cvt_img = cv2.cvtColor(img, CVT_MODE)
-        color_filtered = cv2.inRange(cvt_img, lower, upper)
         cv2.imshow("Color filtered", color_filtered)
+        cv2.imshow("Color filter blurred", color_filtered_blurred)
         def mouse_click(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
                 print(cvt_img[y, x])
@@ -149,6 +152,8 @@ def tune_hls(img):
 
         cv2.waitKey(0)
         plt.show()
+    elif DEBUG_LEVEL < 0:
+        cv2.imwrite("color-filtered.jpg", color_filtered)
     return lower, upper
 
 
@@ -158,11 +163,11 @@ def main():
     parser.add_argument("--test", action="store_true",
                         help="If set, will use test image from test-img.jpg instead of video feed")
     parser.add_argument("--debug-level", type=int, default=0,
-                         help="If set, will display images of what was found. Set to 0 (no images), 1, or 2 (see lots of debugging)")
+                         help="If set, will display images of what was found. Set to 0 (no images), 1, or 2 (see lots of debugging). -1 is a special case where it will write the images to a file but not display them")
     parser.add_argument("--nofile", action="store_true",
                         help="If set, will only print the values it found, and not write it to the file")
     parser.add_argument("--discard", type=int, default=0,
-                        help="Discards the first few frames from a camera so it has time to initialize")
+                        help="Discards the first n frames from a camera so it has time to initialize")
     parser.add_argument("--test-img-src", default="test-img.jpg",
                         help="If --test is set, this indicates where to load test image from")
     args = parser.parse_args()
@@ -186,6 +191,8 @@ def main():
     if DEBUG_LEVEL >= 1:
         cv2.imshow("Original", img)
         cv2.waitKey(0)
+    elif DEBUG_LEVEL < 0:
+        cv2.imwrite("original-img.jpg", img)
     lower, upper = tune_hls(img)
     if not args.nofile:
         with open("hslauto_values", "w") as f:
