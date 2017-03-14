@@ -13,8 +13,11 @@ CVT_MODE = cv2.COLOR_BGR2HLS
 
 DEBUG_LEVEL = 0
 
+CONFIDENCE_THRESHOLD = 0.55
+
 
 def tune_hls(img):
+    img = cv2.bilateralFilter(img, 5, 75, 75)
     # Extract height and width from the image
     height, width, _ = img.shape
     # We will iterate through the loop and keep track of the current best confidence
@@ -22,7 +25,7 @@ def tune_hls(img):
     best_confidence = 0
     best_target = None
     # i represents the coefficient we use for Canny edge detection, we try everything from 20 to 500 going by 20's
-    for i in range(20, 500, 20):
+    for i in range(300, 20, -20):
         print("Trying", i, i*2)
         # Copy the image and find the edges using the coefficients
         new_image = deepcopy(img)
@@ -70,7 +73,8 @@ def tune_hls(img):
         if confidence > best_confidence:
             best_target = wanted_target
             best_confidence = confidence
-
+        #if best_confidence > CONFIDENCE_THRESHOLD:
+        #    break
     if best_confidence == 0:
         raise AssertionError("Could not find target")
 
@@ -102,7 +106,7 @@ def tune_hls(img):
 
     # We scale the hue value to be out of 255 so that we can just call a simple clip
     full_range_scale = np.array([256.0 / 180.0, 1.0, 1.0])
-    std_num = 3
+    std_num = 2.5
     lower = mean - std_num*std
     lower *= full_range_scale
     lower = np.clip(lower, 0, 255)
@@ -127,11 +131,10 @@ def tune_hls(img):
         print("Y", strip.absolute_y())
     cvt_img = cv2.cvtColor(img, CVT_MODE)
     color_filtered = cv2.inRange(cvt_img, lower, upper)
-    color_filtered_blurred = cv2.inRange(cv2.bilateralFilter(cvt_img, 5, 50, 50), lower, upper)
     if DEBUG_LEVEL >= 1:
         from matplotlib import pyplot as plt
         cv2.imshow("Color filtered", color_filtered)
-        cv2.imshow("Color filter blurred", color_filtered_blurred)
+        #cv2.imshow("Color filter blurred", color_filtered_blurred)
         def mouse_click(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
                 print(cvt_img[y, x])
@@ -176,7 +179,7 @@ def main():
 
     if args.test:
         img = cv2.imread(args.test_img_src)
-        img = img[100:]
+        # img = img[100:]
     else:
         video = cv2.VideoCapture(args.port)
         for _ in range(args.discard):
