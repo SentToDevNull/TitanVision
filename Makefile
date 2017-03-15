@@ -88,11 +88,9 @@ reboot:
 	-sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_OTHER) "reboot"
 
 left:
-	sshpass -p $(password) scp $(NOCHK) rcinit root@$(IP):/etc/rc.local
-	sshpass -p $(password) rsync -arP --delete ./ root@$(IP):/opt/TitanVision
+	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_LEFT) "cd /opt/TitanVision/ && python main.py" &
 
 right:
-	sshpass -p $(password) scp $(NOCHK) rcinit root@$(IP_OTHER):/etc/rc.local
-	sshpass -p $(password) rsync -arP --delete ./ root@$(IP_OTHER):/opt/TitanVision
+	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_RIGHT) "cd /opt/TitanVision/ && python main.py" &
 
 # vim:ts=2:sw=2:nospell
