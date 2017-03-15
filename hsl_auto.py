@@ -132,29 +132,31 @@ def tune_hls(img):
     cvt_img = cv2.cvtColor(img, CVT_MODE)
     color_filtered = cv2.inRange(cvt_img, lower, upper)
     if DEBUG_LEVEL >= 1:
-        from matplotlib import pyplot as plt
         cv2.imshow("Color filtered", color_filtered)
         #cv2.imshow("Color filter blurred", color_filtered_blurred)
         def mouse_click(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
                 print(cvt_img[y, x])
         cv2.setMouseCallback("Color filtered", mouse_click)
-        _, (ax1, ax2) = plt.subplots(2, sharex=True)
-        ax1.set_title("Strip color histogram")
-        ax2.set_title("Entire image histogram")
-        for i in range(3):
-            hist = cv2.calcHist([cvt_img], [i], mask, [256], [0, 256])
-            color = ['b', 'g', 'r'][i]
-            ax1.plot(hist, color=color)
-            ax1.axvline(x=lower[i], color=color)
-            ax1.axvline(x=upper[i], color=color)
-            hist2 = cv2.calcHist([cvt_img], [i], None, [256], [0, 256])
-            ax2.plot(hist2, color=color)
-            ax2.axvline(x=lower[i], color=color)
-            ax2.axvline(x=upper[i], color=color)
-
         cv2.waitKey(0)
-        plt.show()
+        try:
+            from matplotlib import pyplot as plt
+            _, (ax1, ax2) = plt.subplots(2, sharex=True)
+            ax1.set_title("Strip color histogram")
+            ax2.set_title("Entire image histogram")
+            for i in range(3):
+                hist = cv2.calcHist([cvt_img], [i], mask, [256], [0, 256])
+                color = ['b', 'g', 'r'][i]
+                ax1.plot(hist, color=color)
+                ax1.axvline(x=lower[i], color=color)
+                ax1.axvline(x=upper[i], color=color)
+                hist2 = cv2.calcHist([cvt_img], [i], None, [256], [0, 256])
+                ax2.plot(hist2, color=color)
+                ax2.axvline(x=lower[i], color=color)
+                ax2.axvline(x=upper[i], color=color)
+            plt.show()
+        except ImportError:
+            print("Could not find matplotlib. Not showing histogram")
     elif DEBUG_LEVEL < 0:
         cv2.imwrite("color-filtered.jpg", color_filtered)
     return lower, upper
