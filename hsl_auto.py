@@ -1,3 +1,29 @@
+#!/usr/bin/env python
+
+##########################################################################
+#                                                                        #
+#  Copyright (C) 2017  Lukas Yoder and Praneeth Kolicahala               #
+#                                                                        #
+#  This program is free software: you can redistribute it and/or modify  #
+#  it under the terms of the GNU General Public License as published by  #
+#  the Free Software Foundation, either version 3 of the License, or     #
+#  (at your option) any later version.                                   #
+#                                                                        #
+#  This program is distributed in the hope that it will be useful,       #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU General Public License for more details.                          #
+#                                                                        #
+#  You should have received a copy of the GNU General Public License     #
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>. #
+#                                                                        #
+#  hsl_auto.py: determines the optimal HSL values to use for filtering   #
+#               under current lighting conditions based on the geometry  #
+#               of the image captured if the target is aligned with the  #
+#               cameras                                                  #
+#                                                                        #
+##########################################################################
+
 from __future__ import print_function
 from target_processing import Target
 from target_processing import TargetStrip

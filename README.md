@@ -12,15 +12,18 @@ or recommendations would be greatly appreciated.
               serving camera streams and sending pertinent values out to
               SmartDashboard via NetworkTables
 * `processing.py` - processes the camera objects passed through, except
-                    for camera_three, the driver station camera; it
-                    filters out everything but reflective tape on both
-                    treams, then calculates the centers of both strips,
-                    decreasing confidence values if the filtered image is
-                    not oriented correctly
+                    for camera_three, the driver station camera
 * `feed_server.py` - serves the feeds from camera objects passed to its
                      constructor
 * `hsltest.py` - this is an interactive HSL filtering program to aid in
                  finding which values should be filtered
+* `hsl_auto.py` - calibrates the HSL values used for filtering
+* `load_hsl_values.py` - loads calibrated HSL values into processing code
+* `target_processing.py` - performs target-specific processing; it
+                    filters out everything but reflective tape on both
+                    treams, then calculates the centers of both strips,
+                    decreasing confidence values if the filtered image is
+                    not oriented correctly
 * `rcinit` - this is the script installed at `/etc/rc.local` to start the
              main program at bootup
 * `Makefile` - this is the Makefile for pushing the code to the RasPi; it

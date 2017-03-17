@@ -1,7 +1,0 @@
-#!/bin/sh
-service ssh restart               # because the process stops after starting at
-                                  #   boot
-python /opt/TitanVision/main.py & # running the vision code in the background
-exit 0
-
-# vim:ts=2:sw=2:nospell

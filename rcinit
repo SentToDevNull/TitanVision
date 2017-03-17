@@ -2,7 +2,7 @@
 service ssh restart               # because the process stops after starting at
                                   #   boot
 cd /opt/TitanVision/
-python hsl_auto.py --debug-level -1 --discard 20 --nofile &
+python hsl_auto.py --debug-level -1 --discard 20 --nofile
 python main.py &
 exit 0
 
