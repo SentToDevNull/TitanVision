@@ -62,7 +62,7 @@ kill:
 	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_OTHER) "pkill python"
 
 find:
-	arp-scan --interface=eth0 --localnet
+	sudo arp-scan --interface=eth0 --localnet
 	#sudo netdiscover    # deprecated; slow
 
 fetch: backup_first
