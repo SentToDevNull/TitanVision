@@ -106,8 +106,8 @@ def process_data(run, filter):
 if __name__ == '__main__':
   run = threading.Event()
   run.set()
-  t1 = Thread(target = video_feeder_thread, args = (run,))
-  t1.start()
+  #t1 = Thread(target = video_feeder_thread, args = (run,))
+  #t1.start()
   t2 = Thread(target = process_data, args = (run, filter))
   t2.start()
   try:
@@ -119,8 +119,8 @@ if __name__ == '__main__':
     print "Threads closed."
     t2.join()
     print "Shutting down server..."
-    server.shutdown()
-    server.stop()
+    #server.shutdown()
+    #server.stop()
     sys.exit()
 
 # vim:ts=2:sw=2:nospell

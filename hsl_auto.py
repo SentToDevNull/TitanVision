@@ -197,10 +197,11 @@ def main():
         cv2.imshow("Original", img)
         cv2.waitKey(0)
     elif DEBUG_LEVEL < 0:
-        cv2.imwrite("original-img.jpg", img)
+        image_seen = "../Saved_Startup_Images/image_seen" + time.strftime("_%Y_%m_%d_time_%H_%M") + ".jpg"
+        cv2.imwrite(image_seen, img)
     lower, upper = tune_hls(img)
     if not args.nofile:
-        with open("hslauto_values", "w") as f:
+        with open("hslauto_values", "w+") as f:
             f.write(" ".join(map(str, [lower[0], upper[0], lower[1], upper[1], lower[2], upper[2]])))
 
 if __name__ == "__main__":
