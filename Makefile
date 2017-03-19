@@ -1,9 +1,9 @@
 .PHONY: install deps commit clean run connect kill find fetch
 
 # Clear Pi (Right)
-IP_RIGHT=192.168.10.3
+IP_RIGHT=192.168.10.2
 # Black Pi (Left)
-IP_LEFT=192.168.10.2
+IP_LEFT=192.168.10.3
 # Default IP (what you want to connect to by default)
 IP=$(IP_LEFT)
 # IP of the Other Camera
@@ -42,16 +42,24 @@ deps:
 commit: clean
 	git add *
 	git commit *
+
+push: commit
 	git push origin master
 
 clean:
-	#rm -f hslauto_values
+	rm -f hslauto_values &>/dev/null
 	rm -f *.pyc &>/dev/null
+	rm -f black.jpg clear.jpg &>/dev/null
 	rm -f *.save &>/dev/null
 	rm -rf __pycache__/ &>/dev/null
+	rm -f color-filtered.jpg mask.jpg
+	rm -f black.txt clear.txt
 
 connect: fetch_backups
-	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP) "cd /opt/TitanVision/ && bash"
+	sshpass -p $(password) ssh -X $(NOCHK) -t root@$(IP) "cd /opt/TitanVision/ && bash"
+
+connect_other: fetch_backups
+	sshpass -p $(password) ssh -X $(NOCHK) -t root@$(IP_OTHER) "cd /opt/TitanVision/ && bash"
 
 run: clean install
 	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP) "cd /opt/TitanVision/ && python main.py" &
@@ -65,11 +73,11 @@ find:
 	sudo arp-scan --interface=eth0 --localnet
 	#sudo netdiscover    # deprecated; slow
 
-fetch: backup_first
+fetch: backup_first fetch_backups
 	sshpass -p $(password) rsync -arP --delete $(EXCLUDES) root@$(IP):/opt/TitanVision/ .
 	$(USE_OWN_MAKEFILE)
 
-save_from_pi:
+save_from_pi: fetch_backups
 	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP) "cd /root/ && tar cvf $(NAME_FROM_PI) --owner=65534 --group=65534 /opt/TitanVision/"
 	sshpass -p $(password) scp $(NOCHK) root@$(IP):/root/$(NAME_FROM_PI) .
 	xz -z9 -e -C sha256 $(NAME_FROM_PI)
@@ -94,17 +102,24 @@ reboot:
 	-sshpass -p $(password) ssh $(NOCHK) -t root@$(IP) "reboot"
 	-sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_OTHER) "reboot"
 
-left:
-	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_LEFT) "cd /opt/TitanVision/ && python main.py" &
-
-right:
-	sshpass -p $(password) ssh $(NOCHK) -t root@$(IP_RIGHT) "cd /opt/TitanVision/ && python main.py" &
-
 fetch_backups:
 	mkdir -p ../Saved_Startup_Images/black
 	mkdir -p ../Saved_Startup_Images/clear
 	sshpass -p $(password) rsync -arP root@$(IP_RIGHT):/opt/Saved_Startup_Images/ ../Saved_Startup_Images/clear
 	sshpass -p $(password) rsync -arP root@$(IP_LEFT):/opt/Saved_Startup_Images/ ../Saved_Startup_Images/black
 
+push_hsl_values: black.jpg clear.jpg
+	python hsl_auto.py --test --outfile=black.txt --nofile
+	mkdir -p ../Saved_Startup_Images/black
+	mkdir -p ../Saved_Startup_Images/clear
+	sshpass -p $(password) rsync -arP root@$(IP_RIGHT):/opt/Saved_Startup_Images/ ../Saved_Startup_Images/clear
+	sshpass -p $(password) rsync -arP root@$(IP_LEFT):/opt/Saved_Startup_Images/ ../Saved_Startup_Images/black
+
+use_fetched_image:
+	python hsl_auto.py --outfile black.txt --test --debug-level 1 --test-img-src=black.jpg
+	python hsl_auto.py --outfile clear.txt --test --debug-level 1 --test-img-src=clear.jpg
+	sshpass -p $(password) scp $(NOCHK) black.txt root@$(IP_LEFT):/opt/TitanVision/hslauto_values
+	sshpass -p $(password) scp $(NOCHK) clear.txt root@$(IP_RIGHT):/opt/TitanVision/hslauto_values
+	rm black.jpg clear.jpg
 
 # vim:ts=2:sw=2:nospell
