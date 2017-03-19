@@ -42,7 +42,7 @@ class TargetStrip(object):
     self.rect_height = h
     self.moments = cv2.moments(c)
     self.area = abs(self.moments["m00"])
-    self.centroid = self.moments["m10"] / self.area,
+    self.centroid = self.moments["m10"] / self.area,                     \
                     self.moments["m01"] / self.area
     self.cached_confidence = -1
   def rectangular_error(self):
@@ -64,7 +64,7 @@ class TargetStrip(object):
     y = self.centroid[1]
     im_height = self.im_height
     K = 0 # TODO: tune
-    expected_y = 0.5 * im_height + K *
+    expected_y = 0.5 * im_height + K *                                   \
                  (self.rect_width * 2.5 + self.rect_height) / 2.0
     if expected_y - 20 <= y <= expected_y + 20:
       return 0
