@@ -32,3 +32,5 @@ def get_bounds():
   except FileNotFoundError as e:
     print("Warning, file hslauto_values not found! Using default values")
     return default
+
+# vim:ts=2:sw=2:nospell

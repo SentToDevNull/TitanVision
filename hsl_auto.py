@@ -218,7 +218,7 @@ def main():
         if not res:
             raise AssertionError("Could not find camera on usb port " + str(port))
         img = img[100:320]
-    
+
     global DEBUG_LEVEL
     DEBUG_LEVEL = args.debug_level
     if DEBUG_LEVEL >= 1:
@@ -234,3 +234,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# vim:ts=2:sw=2:nospell

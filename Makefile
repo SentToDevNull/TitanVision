@@ -40,7 +40,7 @@ deps:
 	sudo pip install image pynetworktables
 
 commit: clean
-	git add *
+	git add -A *
 	git commit *
 
 push: commit
