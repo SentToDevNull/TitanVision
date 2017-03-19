@@ -45,3 +45,5 @@ Having a single, uniform style is important so that the code doesn't look
 haphazard. If contributing, please wrap your text to 74 characters and use two
 spaces (not four) instead of tabs. Please use sane variable, function, and class
 names (instead of "test_1", "func1", etc.).
+
+[//]: # vim:ts=2:sw=2:nospell
