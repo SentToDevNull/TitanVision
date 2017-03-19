@@ -25,15 +25,15 @@
 ##########################################################################
 
 from __future__ import print_function
+import cv2
+import time
+import random
+import argparse
+import itertools
+import numpy as np
+from copy import deepcopy
 from target_processing import Target
 from target_processing import TargetStrip
-import cv2
-import numpy as np
-import itertools
-import time
-from copy import deepcopy
-import argparse
-import random
 
 CVT_MODE = cv2.COLOR_BGR2HLS
 
@@ -46,24 +46,30 @@ def tune_hls(img):
     img = cv2.bilateralFilter(img, 5, 75, 75)
     # Extract height and width from the image
     height, width, _ = img.shape
-    # We will iterate through the loop and keep track of the current best confidence
-    # and the target associated with that confidence
+    # We will iterate through the loop and keep track of the current best
+    # confidence and the target associated with that confidence
     best_confidence = 0
     best_target = None
-    # i represents the coefficient we use for Canny edge detection, we try everything from 20 to 500 going by 20's
+    # i represents the coefficient we use for Canny edge detection, we try
+    #  everything from 20 to 500 going by 20's
     for i in range(300, 20, -20):
         print("Trying", i, i*2)
         # Copy the image and find the edges using the coefficients
         new_image = deepcopy(img)
         edges = cv2.Canny(new_image, i, i*2)
-        # Do a closing which fills in black holes; this is important after canny edge detection
-        edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((5, 5), dtype="uint8"))
-        # We make a copy if the debug level is 2 so that we can show the image later
+        # Do a closing which fills in black holes; this is important after
+        #  canny edge detection
+        edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((5, 5),
+                                 dtype="uint8"))
+        # We make a copy if the debug level is 2 so that we can show the
+        #  image later
         if DEBUG_LEVEL == 2:
             edge_copy = cv2.cvtColor(deepcopy(edges), cv2.COLOR_GRAY2BGR)
-        edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE,
+                                                  cv2.CHAIN_APPROX_SIMPLE)
         # We only want those with area greater than 100
-        contours = list(filter(lambda x: abs(cv2.contourArea(x)) > 100, edge_contours))
+        contours = list(filter(lambda x: abs(cv2.contourArea(x)) > 100,
+                        edge_contours))
         wanted_strips = []
         for c in contours:
             strip = TargetStrip(c, height)
@@ -76,7 +82,8 @@ def tune_hls(img):
             cv2.waitKey(0)
         print("Number of strips found", len(wanted_strips))
 
-        # If there are fewer than 2 strips, then clearly these coefficients don't find the strips; continue
+        # If there are fewer than 2 strips, then these coefficients don't
+        #  find the strips; continue
         if len(wanted_strips) < 2:
             continue
 
@@ -104,11 +111,14 @@ def tune_hls(img):
     if best_confidence == 0:
         raise AssertionError("Could not find target")
 
-    # Draw the contours onto a mask so that we can get the pixels inside the contour
+    # Draw the contours onto a mask so that we can get the pixels inside
+    #  the contour
     mask = np.zeros((height, width), dtype="uint8")
-    cv2.drawContours(mask, [best_target.strip1.c, best_target.strip2.c], -1, 255, thickness=-1)
+    cv2.drawContours(mask, [best_target.strip1.c, best_target.strip2.c],
+                     -1, 255, thickness=-1)
 
-    # Extract only the colored strips (the pixels behind the white pixels in the mask) with a bitwise and
+    # Extract only the colored strips (the pixels behind the white pixels
+    #  in the mask) with a bitwise and
     colored_strips = cv2.bitwise_and(img, img, mask=mask)
     if DEBUG_LEVEL >= 1:
         cv2.imshow("mask", colored_strips)
@@ -120,7 +130,8 @@ def tune_hls(img):
     # Flatten it slightly by one dimension
     hls_colored_strips = np.reshape(hls_colored_strips, (width*height, 3))
 
-    # Find all the non-black pixels (these are the pixels we want to find the average/variance of)
+    # Find all the non-black pixels (these are the pixels we want to find
+    #  the average/variance of)
     hls_non_black_inds = np.sum(hls_colored_strips, axis=1).nonzero()
     wanted_colors = hls_colored_strips[hls_non_black_inds]
 
@@ -130,7 +141,8 @@ def tune_hls(img):
     print("Mean", mean)
     print("Std dev", std)
 
-    # We scale the hue value to be out of 255 so that we can just call a simple clip
+    # We scale the hue value to be out of 255 so that we can just call a
+    #  simple clip
     full_range_scale = np.array([256.0 / 180.0, 1.0, 1.0])
     std_num = 2.5
     lower = mean - std_num*std
@@ -171,12 +183,12 @@ def tune_hls(img):
             ax1.set_title("Strip color histogram")
             ax2.set_title("Entire image histogram")
             for i in range(3):
-                hist = cv2.calcHist([cvt_img], [i], mask, [256], [0, 256])
+                hist= cv2.calcHist([cvt_img], [i], mask, [256], [0, 256])
                 color = ['b', 'g', 'r'][i]
                 ax1.plot(hist, color=color)
                 ax1.axvline(x=lower[i], color=color)
                 ax1.axvline(x=upper[i], color=color)
-                hist2 = cv2.calcHist([cvt_img], [i], None, [256], [0, 256])
+                hist2= cv2.calcHist([cvt_img], [i], None, [256], [0, 256])
                 ax2.plot(hist2, color=color)
                 ax2.axvline(x=lower[i], color=color)
                 ax2.axvline(x=upper[i], color=color)
@@ -189,20 +201,30 @@ def tune_hls(img):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Automatically tunes HLS values for vision processing")
-    parser.add_argument("--port", help="The USB port for the camera", type=int, default=0)
+    parser = argparse.ArgumentParser(description="Automatically tunes HLS"
+                                          " values for vision processing")
+    parser.add_argument("--port", help="The USB port for the camera",
+                        type=int, default=0)
     parser.add_argument("--test", action="store_true",
-                        help="If set, will use test image from test-img.jpg instead of video feed")
+                        help="If set, will use test image from "
+                        "test-img.jpg instead of video feed")
     parser.add_argument("--debug-level", type=int, default=0,
-                         help="If set, will display images of what was found. Set to 0 (no images), 1, or 2 (see lots of debugging). -1 is a special case where it will write the images to a file but not display them")
+                         help="If set, will display images of what was"
+                         "found. Set to 0 (no images), 1, or 2 (see lots"
+                         " of debugging). -1 is a special case where it"
+                         "will write the images to a file but not display"
+                         "them")
     parser.add_argument("--nofile", action="store_true",
-                        help="If set, will only print the values it found, and not write it to the file")
+                        help="If set, will only print the values it "
+                        "found, and not write it to the file")
     parser.add_argument("--outfile", default="hslauto_values",
                         help="Writes HSL values to a specific filename")
     parser.add_argument("--discard", type=int, default=0,
-                        help="Discards the first n frames from a camera so it has time to initialize")
+                        help="Discards the first n frames from a camera "
+                        "so it has time to initialize")
     parser.add_argument("--test-img-src", default="test-img.jpg",
-                        help="If --test is set, this indicates where to load test image from")
+                        help="If --test is set, this indicates where to "
+                        "load test image from")
     args = parser.parse_args()
 
     print("Automatically tuning HLS values", args)
@@ -216,7 +238,8 @@ def main():
             video.read()
         res, img = video.read()
         if not res:
-            raise AssertionError("Could not find camera on usb port " + str(port))
+            raise AssertionError("Could not find camera on usb port " +
+                                 str(port))
         img = img[100:320]
 
     global DEBUG_LEVEL
@@ -225,12 +248,14 @@ def main():
         cv2.imshow("Original", img)
         cv2.waitKey(0)
     elif DEBUG_LEVEL < 0:
-        image_seen = "../Saved_Startup_Images/image_seen" + time.strftime("_%Y_%m_%d_time_%H_%M") + ".jpg"
+        image_seen = "../Saved_Startup_Images/image_seen" + time.strftime(
+                     "_%Y_%m_%d_time_%H_%M") + ".jpg"
         cv2.imwrite(image_seen, img)
     lower, upper = tune_hls(img)
     if not args.nofile:
         with open(args.outfile, "w+") as f:
-            f.write(" ".join(map(str, [lower[0], upper[0], lower[1], upper[1], lower[2], upper[2]])))
+            f.write(" ".join(map(str, [lower[0], upper[0], lower[1],
+                    upper[1], lower[2], upper[2]])))
 
 if __name__ == "__main__":
     main()

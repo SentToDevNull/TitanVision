@@ -44,8 +44,8 @@ from target_processing import TargetStrip
 PEG_LENGTH = 10
 class Filter(object):
 
-  def __init__(self, is_right, h_low, h_high, l_low, l_high, s_low, s_high, sd,
-               minimum_area, camnum):
+  def __init__(self, is_right, h_low, h_high, l_low, l_high, s_low,
+               s_high, sd, minimum_area, camnum):
     self.is_right = is_right
     self.minimum_area = minimum_area
     self.last_frame = -1
@@ -122,7 +122,8 @@ class Filter(object):
       if target.total_confidence() > CONFIDENCE_THRESHOLD_TARGET:
         targets.append(target)
     targets.sort(key=Target.total_confidence, reverse=True)
-    target_data = {"xc1": -1, "yc1": -1, "xc2": -1, "yc2": -1, "xc": -1, "yc": -1}
+    target_data = {"xc1": -1, "yc1": -1, "xc2": -1, "yc2": -1, "xc": -1,
+                   "yc": -1}
     self.last_frame = frame
     if (len(targets) == 0 and len(target_strips) == 0):
       print "Nothing returned at all."
@@ -135,7 +136,9 @@ class Filter(object):
       target_data["xc2"], target_data["yc2"] = wanted_strip.centroid
       # Estimate based on some ratios
       CENTROID_DISTANCE_TO_HEIGHT = 8.25 / 5.0
-      target_data["xc1"] = target_data["xc2"] - self.is_right*CENTROID_DISTANCE_TO_HEIGHT * wanted_strip.rect_height
+      target_data["xc1"] = target_data["xc2"] -
+                           self.is_right*CENTROID_DISTANCE_TO_HEIGHT *
+                           wanted_strip.rect_height
       target_data["yc1"] = target_data["yc2"]
       area = wanted_strip.area
       confidence = wanted_strip.total_confidence()
@@ -143,7 +146,8 @@ class Filter(object):
       wanted_target = targets[0] # Target with highest confidence
       confidence = wanted_target.total_confidence()
       print "Found target with confidence", confidence
-      target_data["xc1"], target_data["yc1"], target_data["xc2"], target_data["yc2"] = wanted_target.extract_centers()
+      target_data["xc1"], target_data["yc1"], target_data["xc2"],
+      target_data["yc2"] = wanted_target.extract_centers()
       av_height = wanted_target.average_height()
       area = wanted_target.average_area()
     target_data["xc"] = 0.5 * (target_data["xc1"] + target_data["xc2"])
@@ -154,20 +158,23 @@ class Filter(object):
     centroid_distance = abs(target_data["xc1"] - target_data["xc2"])
     distance = K / centroid_distance - PEG_LENGTH
     camera_offset = 6.25 # Inches
-    camera_offset_percent = camera_offset * (centroid_distance / 8.25) * (100.0 / WIDTH)
+    camera_offset_percent = camera_offset * (centroid_distance / 8.25) *
+                            (100.0 / WIDTH)
     print "Offset correction", camera_offset_percent
     # Debug
     xc, yc = int(target_data["xc"]), int(target_data["yc"])
     cv2.circle(image, (xc, yc), 3, (255, 0, 0))
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(image,
-                "target confidence: " + str(round(confidence, 3)) + "  Centroid distance: " + str(round(centroid_distance, 3)),
+                "target confidence: "+ str(round(confidence, 3)) +
+                "  Centroid distance: "+ str(round(centroid_distance, 3)),
                 (3, 15), font, 0.4, (0, 0, 255))
     cv2.putText(image, "offset: " + str(round(offset, 3)),
                 (3, 30), font, 0.4, (0, 0, 255))
     cv2.putText(image, "distance: " + str(round(distance, 3)),
                 (3, 45), font, 0.4, (0, 0, 255))
-    cv2.putText(image, "y abs k: " + str(round((yc - HEIGHT/2.0) / av_height, 3)),
+    cv2.putText(image, "y abs k: " +
+                str(round((yc - HEIGHT/2.0) / av_height, 3)),
                 (3, 60), font, 0.4, (0, 0, 255))
     #offset += camera_offset_percent * self.is_right
     self.last_frame = frame

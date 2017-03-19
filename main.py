@@ -31,14 +31,13 @@ import threading
 import feed_server
 from threading import Thread
 from processing import Filter
+from load_hsl_values import get_bounds
 from networktables import NetworkTables
 from feed_server import ThreadedHTTPServer
-from load_hsl_values import get_bounds
 
 # Port for the camera
 cam_usb_port = 0
 camport = 5800
-#roborio_ip = '192.168.10.3'
 roborio_ip = "roborio-1683-FRC.local"
 minimum_area = 100
 
@@ -81,18 +80,21 @@ def calculate_cam_and_send(data):
   mycam = "Cam" + str(camnum)
   sd.putNumber(mycam + "_X_Offset", offset)       # -50 to 50
   sd.putNumber(mycam + "_Confidence", confidence)             #0.0->1.0
-#  sd.putNumber(mycam + "_Left_Center_X", target_data["xc1"])
+  #sd.putNumber(mycam + "_Left_Center_X", target_data["xc1"])
   sd.putNumber(mycam + "_Distance", distance)                 #inches
-#  sd.putNumber(mycam + "_Left_Center_Y", target_data["yc1"])
-#  sd.putNumber(mycam + "_Right_Center_X", target_data["xc2"])
-#  sd.putNumber(mycam + "_Rigth_Center_Y", target_data["yc2"])
-#  sd.putNumber(mycam + "_Width_PX", 640)                      # pixels
-#  sd.putNumber(mycam + "_Height_PX", 480)                     # pixels
-#  sd.putNumber(mycam + "_Target_X", target_data["xc"])        #pixels
-#  sd.putNumber(mycam + "_Target_Y", target_data["yc"])        #pixels
-  print mycam + " Tape 1: (" + str(target_data["xc1"]) + "," + str(target_data["yc1"]) + ")"
-  print mycam + " Tape 2: (" + str(target_data["xc2"]) + "," + str(target_data["yc2"]) + ")"
-  print mycam + " Target: (" + str(target_data["xc"]) + "," + str(target_data["yc"]) + ")"
+  #sd.putNumber(mycam + "_Left_Center_Y", target_data["yc1"])
+  #sd.putNumber(mycam + "_Right_Center_X", target_data["xc2"])
+  #sd.putNumber(mycam + "_Rigth_Center_Y", target_data["yc2"])
+  #sd.putNumber(mycam + "_Width_PX", 640)                      # pixels
+  #sd.putNumber(mycam + "_Height_PX", 480)                     # pixels
+  #sd.putNumber(mycam + "_Target_X", target_data["xc"])        #pixels
+  #sd.putNumber(mycam + "_Target_Y", target_data["yc"])        #pixels
+  print mycam + " Tape 1: (" + str(target_data["xc1"]) + "," +
+        str(target_data["yc1"]) + ")"
+  print mycam + " Tape 2: (" + str(target_data["xc2"]) + "," +
+        str(target_data["yc2"]) + ")"
+  print mycam + " Target: (" + str(target_data["xc"]) + "," +
+        str(target_data["yc"]) + ")"
   print mycam + " Confidence:", confidence
   print mycam + " Percent_Offset:", offset, "%"
   print mycam + " Distance:", distance
