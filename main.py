@@ -103,6 +103,7 @@ def process_data(run, filter):
 
   while (run.is_set()):
     calculate_cam_and_send(filter.get_frame(minimum_area))
+    time.sleep(.02)
 if __name__ == '__main__':
   run = threading.Event()
   run.set()

@@ -197,6 +197,8 @@ def main():
                          help="If set, will display images of what was found. Set to 0 (no images), 1, or 2 (see lots of debugging). -1 is a special case where it will write the images to a file but not display them")
     parser.add_argument("--nofile", action="store_true",
                         help="If set, will only print the values it found, and not write it to the file")
+    parser.add_argument("--outfile", default="hslauto_values",
+                        help="Writes HSL values to a specific filename")
     parser.add_argument("--discard", type=int, default=0,
                         help="Discards the first n frames from a camera so it has time to initialize")
     parser.add_argument("--test-img-src", default="test-img.jpg",
@@ -216,7 +218,7 @@ def main():
         if not res:
             raise AssertionError("Could not find camera on usb port " + str(port))
         img = img[100:320]
-
+    
     global DEBUG_LEVEL
     DEBUG_LEVEL = args.debug_level
     if DEBUG_LEVEL >= 1:
@@ -227,7 +229,7 @@ def main():
         cv2.imwrite(image_seen, img)
     lower, upper = tune_hls(img)
     if not args.nofile:
-        with open("hslauto_values", "w+") as f:
+        with open(args.outfile, "w+") as f:
             f.write(" ".join(map(str, [lower[0], upper[0], lower[1], upper[1], lower[2], upper[2]])))
 
 if __name__ == "__main__":
