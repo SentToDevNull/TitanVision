@@ -1,8 +1,8 @@
 .PHONY: install deps commit clean run connect kill find fetch
 
-# Clear Pi (Right)
+# Clear Pi (Right Side of Robot)
 IP_RIGHT=192.168.10.2
-# Black Pi (Left)
+# Black Pi (Left Side of Robot)
 IP_LEFT=192.168.10.3
 # Default IP (what you want to connect to by default)
 IP=$(IP_LEFT)
