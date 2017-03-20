@@ -41,9 +41,18 @@ into the Makefile, and run `make`.
 If you are running a Debian-based system and you wish to install all the
 dependencies needed to run this program, run `make deps`.
 
-## Testing HLS Values
-To test HLS values for filtering, run `python hsltest.py` locally to
+## Testing HSL Values
+To test HSL values for filtering, run `python hsltest.py` locally to
 start the graphical filtering program.
+
+## Automatically Calibrating HSL Values
+To automatically calibrate HSL values, run `python hsl_auto.py --test`
+locally to use the test image in the repository,
+`python hsl_auto.py --test --test-img-src=x.jpg` to use your own image,
+where your own image is "x.jpg", and
+`python hsl_auto.py --debug-level 1` to use view all debug information
+and images. Running `python hsl_auto.py --help` will give you a complete
+list of possible commands.
 
 ## Style
 Having a single, uniform style is important so that the code doesn't look
