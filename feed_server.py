@@ -30,6 +30,10 @@ from PIL import Image
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
+# The server class, of which CamHandler is a subclass, to enable the
+#   camera server to feed an MJPG stream and output the location of the
+#   feed ($IP:port/*.mjpg), where * can be anything (such as "camera.mjpg"
+#   if a web browser won't open a ".mjpg" stream by default).
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
   def __init__(self, port, ip, filter):
     self.stopped = {"value": False}
@@ -88,6 +92,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer, object):
     self.stopped["value"] = True
   allow_reuse_address = True
 
+# Ensures that server doesn't run if not connected to a network. The
+#   8.8.8.8 IP is a dummy value (Google's DNS server) that is passed
+#   so that we can get the local IP of the machine running the server.
 def get_ip():
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   s.connect(("8.8.8.8", 80))

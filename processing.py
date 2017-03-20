@@ -136,8 +136,8 @@ class Filter(object):
       target_data["xc2"], target_data["yc2"] = wanted_strip.centroid
       # Estimate based on some ratios
       CENTROID_DISTANCE_TO_HEIGHT = 8.25 / 5.0
-      target_data["xc1"] = target_data["xc2"] -
-                           self.is_right*CENTROID_DISTANCE_TO_HEIGHT *
+      target_data["xc1"] = target_data["xc2"] -                          \
+                           self.is_right*CENTROID_DISTANCE_TO_HEIGHT *   \
                            wanted_strip.rect_height
       target_data["yc1"] = target_data["yc2"]
       area = wanted_strip.area
@@ -158,7 +158,7 @@ class Filter(object):
     centroid_distance = abs(target_data["xc1"] - target_data["xc2"])
     distance = K / centroid_distance - PEG_LENGTH
     camera_offset = 6.25 # Inches
-    camera_offset_percent = camera_offset * (centroid_distance / 8.25) *
+    camera_offset_percent = camera_offset * (centroid_distance / 8.25) * \
                             (100.0 / WIDTH)
     print "Offset correction", camera_offset_percent
     # Debug
@@ -166,14 +166,14 @@ class Filter(object):
     cv2.circle(image, (xc, yc), 3, (255, 0, 0))
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(image,
-                "target confidence: "+ str(round(confidence, 3)) +
+                "target confidence: "+ str(round(confidence, 3)) +       \
                 "  Centroid distance: "+ str(round(centroid_distance, 3)),
                 (3, 15), font, 0.4, (0, 0, 255))
     cv2.putText(image, "offset: " + str(round(offset, 3)),
                 (3, 30), font, 0.4, (0, 0, 255))
     cv2.putText(image, "distance: " + str(round(distance, 3)),
                 (3, 45), font, 0.4, (0, 0, 255))
-    cv2.putText(image, "y abs k: " +
+    cv2.putText(image, "y abs k: " +                                     \
                 str(round((yc - HEIGHT/2.0) / av_height, 3)),
                 (3, 60), font, 0.4, (0, 0, 255))
     #offset += camera_offset_percent * self.is_right

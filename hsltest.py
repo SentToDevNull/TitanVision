@@ -17,7 +17,10 @@
 #  You should have received a copy of the GNU General Public License     #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>. #
 #                                                                        #
-#  hsltest.py: a tool for interactively filtering hsl values             #
+#  hsltest.py: a tool for interactively filtering hsl values; this is    #
+#              not needed anymore since hsl_auto.py can do all of the    #
+#              HSL value calibration automatically; still useful for     #
+#              testing though                                            #
 #                                                                        #
 #########################################################################
 
@@ -27,14 +30,17 @@ import numpy as np
 # testing HSL values on the first camera detected
 cap = cv2.VideoCapture(0)
 
+# quite literally does nothing
 def nothing(x):
   pass
 
 # creating the window
 cv2.namedWindow('Filtered Video')
 
+# OpenCV uses a maximum hue value of 180, which is half of the usual 360
+#   colors that other tools use.
 h_lower,s_lower,l_lower = 0,0,0
-h_upper,s_upper,l_upper = 180,255,255
+h_upper,s_upper,l_upper = 180,256,256
 
 # creating track bar
 cv2.createTrackbar('h_lower', 'Filtered Video',0,179,nothing)
@@ -50,7 +56,7 @@ while(1):
   ## sometimes it's useful to crop the frame
   #frame = frame[100:320]
 
-  # converting to HLS
+  # converting image to HLS
   hls = cv2.cvtColor(frame,cv2.COLOR_BGR2HLS)
 
   # getting info from trackbar and appying to Filtered Video
@@ -66,10 +72,13 @@ while(1):
 
   mask = cv2.inRange(hls,lower_set, upper_set)
 
+  # applying the mask to the video stream
   result = cv2.bitwise_and(frame,frame,mask = mask)
 
+  # showing the video stream
   cv2.imshow('Filtered Video',result)
 
+  # allowing process to be terminated by escape key
   k = cv2.waitKey(5) & 0xFF
   if k == 27:
       break

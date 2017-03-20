@@ -238,7 +238,7 @@ def main():
             video.read()
         res, img = video.read()
         if not res:
-            raise AssertionError("Could not find camera on usb port " +
+            raise AssertionError("Could not find camera on usb port " +  \
                                  str(port))
         img = img[100:320]
 

@@ -22,15 +22,19 @@
 #                                                                        #
 ##########################################################################
 
+# Default HSL filtering values to use, read as
+#   h_lower, h_upper, l_lower, l_upper, s_lower, s_upper
 default = [40, 130, 200, 255, 18, 255]
 
-
+# Reads HSL values from a file (in same format as default values) and
+#   uses those values for filtering if the file is present.
 def get_bounds():
   try:
     with open("hslauto_values") as f:
       return map(int, f.read().split())
+  # If file isn't found, use the default values and output a warning.
   except FileNotFoundError as e:
-    print("Warning, file hslauto_values not found! Using default values")
+    print("Warning: File hslauto_values not found! Using default values.")
     return default
 
 # vim:ts=2:sw=2:nospell

@@ -24,10 +24,15 @@ or recommendations would be greatly appreciated.
                     treams, then calculates the centers of both strips,
                     decreasing confidence values if the filtered image is
                     not oriented correctly
+* `whichinterface.sh` - shell script that ensures you are only connected
+                        to only one network (presumably the robot's) and
+                        returns the network interface your network traffic 
+                        is routed through
 * `rcinit` - this is the script installed at `/etc/rc.local` to start the
              main program at bootup
 * `Makefile` - this is the Makefile for pushing the code to the RasPi; it
                also handles dependency resolution on Debian-based clients
+               as well as many other things
 
 ## Dealing With the Code
 To push the code to the RasPi, obtain the correct IP address, insert it

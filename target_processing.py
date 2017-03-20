@@ -78,7 +78,7 @@ class TargetStrip(object):
     rect_error = rect_weight * self.rectangular_error()
     ratio_error = ratio_weight * self.ratio_error()
     y_error = y_err * self.absolute_y()
-    self.cached_confidence = 1.0 / ((1 + rect_error)*(1 + ratio_error)*
+    self.cached_confidence = 1.0 / ((1 + rect_error)*(1 + ratio_error)*  \
                              (1 + y_error))
     return self.cached_confidence
   def extract_corners(self, c):
@@ -120,12 +120,12 @@ class Target(object):
     #   strips should not have more weight just because they are larger,
     #   which would happen if weights were constant and this operation was
     #   not unitless.
-    return abs((self.strip1.area - self.strip2.area) /
+    return abs((self.strip1.area - self.strip2.area) /                   \
                (self.strip1.area + self.strip2.area))
   def shape_error(self):
     #Returns an error based on how unequal the strips' length to width
     #  ratios are
-    return abs(self.strip1.get_height_width_ratio() -
+    return abs(self.strip1.get_height_width_ratio() -                    \
                self.strip2.get_height_width_ratio())
   def distance_error(self):
     # Returns an error the strips are the correct distance apart, will
@@ -137,9 +137,9 @@ class Target(object):
     # when looking from an angle. When at an angle, the targets are
     # parallelograms, but their height remains the same and the distance
     # from centroid is stable
-    actual_centroid_distance = abs(self.strip1.centroid[0] -
+    actual_centroid_distance = abs(self.strip1.centroid[0] -             \
                                    self.strip2.centroid[0])
-    return abs(actual_centroid_distance / av_height -
+    return abs(actual_centroid_distance / av_height -                    \
                CENTROID_DISTANCE_TO_HEIGHT)
   def y_error(self):
     #The two targets' y-values should be close. Returns an error for how
