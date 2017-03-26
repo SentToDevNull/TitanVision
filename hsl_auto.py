@@ -65,7 +65,13 @@ def tune_hls(img):
         #  image later
         if DEBUG_LEVEL == 2:
             edge_copy = cv2.cvtColor(deepcopy(edges), cv2.COLOR_GRAY2BGR)
-        edge_contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE,
+        if (cv2.__version__[0] >= 3):
+            _, edge_contours, hierarchy = cv2.findContours(edges,
+                                                  cv2.RETR_TREE,
+                                                  cv2.CHAIN_APPROX_SIMPLE)
+        if (cv2.__version__[0] <= 2):
+            edge_contours, hierarchy = cv2.findContours(edges,
+                                                  cv2.RETR_TREE,
                                                   cv2.CHAIN_APPROX_SIMPLE)
         # We only want those with area greater than 100
         contours = list(filter(lambda x: abs(cv2.contourArea(x)) > 100,

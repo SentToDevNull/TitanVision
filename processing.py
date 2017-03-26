@@ -100,8 +100,12 @@ class Filter(object):
     HEIGHT, WIDTH, _ = image.shape
     hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
     mask = cv2.inRange(hls_image, self.lower, self.upper)
-    (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                 cv2.CHAIN_APPROX_SIMPLE)
+    if (cv2.__version__[0] >= 3):
+        (_, cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+                                                cv2.CHAIN_APPROX_SIMPLE)
+    if (cv2.__version__[0] <= 2):
+        (cnts, hierarchy) = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+                                             cv2.CHAIN_APPROX_SIMPLE)
     cnts_wanted = []
     target_strips = []
     CONFIDENCE_THRESHOLD_STRIP = 0.5
