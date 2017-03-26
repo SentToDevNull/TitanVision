@@ -115,7 +115,7 @@ commit: clean
 #   code to your repo as well. Use this if you are connected to the
 #   internet.
 push: commit
-	@git push origin master
+	@git push #origin master
 
 # This removes garbage so that you don't commit it or transfer it
 #   accidentally.
