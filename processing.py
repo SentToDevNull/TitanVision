@@ -161,7 +161,7 @@ class Filter(object):
     K = 7277
     centroid_distance = abs(target_data["xc1"] - target_data["xc2"])
     distance = K / centroid_distance - PEG_LENGTH
-    camera_offset = 9.25 #6.25 # Inches
+    camera_offset = 6.25 # Inches
     camera_offset_percent = camera_offset * (centroid_distance / 8.25) * \
                             (100.0 / WIDTH)
     print "Offset correction", camera_offset_percent
