@@ -259,6 +259,13 @@ push_from_capture: black.jpg clear.jpg
 	                       root@$(IP_BLACK):/opt/TitanVision/hslauto_values
 	@rm black.jpg clear.jpg
 
+# This calibrates HSL values based on the camera image.
+hsl_from_camera:
+	@sshpass -p $(password) ssh -X $(NOCHK) -t root@$(IP)                  \
+	                       "cd /opt/TitanVision/ && python hsl_auto.py"
+	@sshpass -p $(password) ssh -X $(NOCHK) -t root@$(IP_OTHER)            \
+	                       "cd /opt/TitanVision/ && python hsl_auto.py"
+
 # This only needs to be run once. It pushes a file to the black RasPi that
 #   main.py so that a different variable name is returned than that of the
 #   clear RasPi.
