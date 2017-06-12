@@ -33,8 +33,13 @@ This is our vision processing code for FIRST Robotics's 2017 FRC competition.
                as well as many other things
 
 ## Dealing With the Code
-To push the code to the RasPi, obtain the correct IP address, insert it
-into the Makefile, and run `make`.
+To push the code to the RasPi, connect it to the network and run `make`.
+If you are using different RasPis than the ones we set up, you'll have to
+update the MAC addresses in the Makefile.
+
+The Makefile was designed so that you manage both RasPis at the same time
+and keep their code in sync. There are make targets for the individual
+RasPis if you need to access only one or the other.
 
 If you are running a Debian-based system and you wish to install all the
 dependencies needed to run this program, run `make deps`.
@@ -51,12 +56,6 @@ where your own image is "x.jpg", and
 `python hsl_auto.py --debug-level 1` to use view all debug information
 and images. Running `python hsl_auto.py --help` will give you a complete
 list of possible commands.
-
-## Style
-Having a single, uniform style is important so that the code doesn't look
-haphazard. If contributing, please wrap your text to 74 characters and use
-two spaces (not four) instead of tabs. Please use sane variable, function,
-and class names (instead of "testOne", "func1", etc.).
 
 <!--
 vim:ts=2:sw=2:nospell
