@@ -2,9 +2,7 @@
 
 ## What Is This Project?
 
-This is a vision processing project of mine written in Python. This is
-my second python program (the first one being "hello world"), so any tips
-or recommendations would be greatly appreciated.
+This is our vision processing code for FIRST Robotics's 2017 FRC competition.
 
 ## What This Repository Consists Of
 
